@@ -100,6 +100,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 print(index)
                                 if index == 9 && isScrolledUp {
                                    loadMore = true
+                                    isScrolledUp = false
                                 }
                             }
                     }
