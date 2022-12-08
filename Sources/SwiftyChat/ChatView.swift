@@ -98,7 +98,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             .onAppear {
                                 let index = messages.firstIndex(of: message) ?? 10
                                 print(index)
-                                if index == 9 && isScrolledUp {
+                                if index <= 9 && isScrolledUp && !loadMore {
                                    loadMore = true
                                 }
                             }
