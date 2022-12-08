@@ -12,6 +12,8 @@ import SwiftUIEKtensions
 public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     
     @Binding private var messages: [Message]
+    @Binding public var loadMore: Bool
+    
     private var inputView: () -> AnyView
 
     private var onMessageCellTapped: (Message) -> Void = { msg in print(msg.messageKind) }
@@ -20,6 +22,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var contactCellFooterSection: (ContactItem, Message) -> [ContactCellButton] = { _, _ in [] }
     private var onAttributedTextTappedCallback: () -> AttributedTextTappedCallback = { return AttributedTextTappedCallback() }
     private var onCarouselItemAction: (CarouselItemButton, Message) -> Void = { (_, _) in }
+    private var onLoadMoreMessages: () -> Void = {   }
     private var inset: EdgeInsets
     private var dateFormater: DateFormatter = DateFormatter()
     private var dateHeaderTimeInterval: TimeInterval
@@ -29,6 +32,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @State private var isKeyboardActive = false
     
     @State private var contentSizeThatFits: CGSize = .zero
+    @State private var isScrolledUp: Bool = false
+    
+ 
     private var messageEditorHeight: CGFloat {
         min(
             contentSizeThatFits.height,
@@ -62,6 +68,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
             ScrollViewReader { proxy in
                 LazyVStack {
                     ForEach(messages) { message in
+                            
                         let showDateheader = shouldShowDateHeader(
                             messages: messages,
                             thisMessage: message
@@ -88,7 +95,15 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 )
                         }
                         chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
+                            .onAppear {
+                                let index = messages.firstIndex(of: message) ?? 10
+                                print(index)
+                                if index == 9 && isScrolledUp {
+                                   loadMore = true
+                                }
+                            }
                     }
+                   
                     Spacer()
                         .frame(height: inset.bottom)
                         .id("bottom")
@@ -121,6 +136,16 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 }
             }
         }
+        .simultaneousGesture(
+               DragGesture().onChanged({
+                   let isScrollDown = 0 < $0.translation.height
+                   if isScrollDown {
+                       isScrolledUp = true
+                   } else {
+                       isScrolledUp = false
+                   }
+                  
+               }))
         .background(Color.clear)
             .padding(.bottom, messageEditorHeight + 30)
     }
@@ -214,6 +239,7 @@ public extension ChatView {
     init(
         messages: Binding<[Message]>,
         scrollToBottom: Binding<Bool> = .constant(false),
+        loadMore: Binding<Bool> = .constant(false),
         dateHeaderTimeInterval: TimeInterval = 3600,
         shouldShowGroupChatHeaders: Bool = false,
         inputView: @escaping () -> AnyView,
@@ -221,6 +247,7 @@ public extension ChatView {
     ) {
         _messages = messages
         self.inputView = inputView
+        _loadMore = loadMore
         _scrollToBottom = scrollToBottom
         self.inset = inset
         self.dateFormater.dateStyle = .medium

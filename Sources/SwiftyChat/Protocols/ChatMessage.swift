@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol ChatMessage: Identifiable {
+public protocol ChatMessage: Identifiable, Equatable {
     
     associatedtype User: ChatUser
     /// The `User` who sent this message.
@@ -22,5 +22,7 @@ public protocol ChatMessage: Identifiable {
     
     /// The date message sent.
     var date: Date { get }
+    
+    
     
 }
