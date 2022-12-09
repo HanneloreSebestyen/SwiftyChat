@@ -82,12 +82,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 dateHeaderShown: showDateheader
                             )
                             
-                            if showDateheader {
-                                Text(dateFormater.string(from: message.date))
-                                    .font(.subheadline)
-                                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                            }
-                            
                             if shouldShowDisplayName {
                                 Text(message.user.userName)
                                     .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
@@ -101,17 +95,26 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             }
                             
                             chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
+                            .listRowSeparator(.hidden)
                             .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                             .onAppear {
                                 self.listItemAppears(message)
                             }
+                        
+                        if showDateheader {
+                            VStack(alignment: .center) {
+                                Text(dateFormater.string(from: message.date))
+                                    .font(.subheadline)
+                            }.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                .frame(width: geometry.size.width)
+                        }
                        
                         
                         if self.loadMore && self.messages.isLastItem(message) {
-                            Divider()
                             Text("Loading ...")
                                 .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                                 .padding(.vertical)
+                                .listRowSeparator(.hidden)
                         }
                         
                     }
