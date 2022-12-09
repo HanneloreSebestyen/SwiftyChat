@@ -195,7 +195,7 @@ public extension ChatView {
             if messageIndex == messages.count - 1 { return true }
             let prevMessage = messages[messageIndex + 1]
             let currMessage = messages[messageIndex]
-            let timeInterval = prevMessage.date - currMessage.date
+            let timeInterval = currMessage.date - prevMessage.date
             return timeInterval > dateHeaderTimeInterval
         }
         return false
