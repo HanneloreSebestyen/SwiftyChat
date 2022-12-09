@@ -67,8 +67,10 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
         ScrollView(.vertical, showsIndicators: false) {
             ScrollViewReader { proxy in
                 LazyVStack {
+                    ProgressView().onAppear{
+                        loadMore = true
+                    }
                     ForEach(messages) { message in
-                            
                         let showDateheader = shouldShowDateHeader(
                             messages: messages,
                             thisMessage: message
@@ -95,13 +97,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 )
                         }
                         chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
-                            .onAppear {
-                                let index = messages.firstIndex(of: message) ?? 10
-                                print(index)
-                                if index <= 9 && isScrolledUp && !loadMore {
-                                   loadMore = true
-                                }
-                            }
                     }
                    
                     Spacer()
@@ -110,7 +105,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 }
                 .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
                 .onChange(of: scrollToBottom) { value in
-                    if value {
+                    if value && !isScrolledUp {
                         withAnimation {
                             proxy.scrollTo("bottom")
                         }
