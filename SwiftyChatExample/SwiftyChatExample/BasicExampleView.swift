@@ -21,7 +21,7 @@ struct BasicExampleView: View {
     }
     
     private var chatView: some View {
-        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages) {
+        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages, previousLastMessageId: "") {
 
             BasicInputView(
                 message: $message,

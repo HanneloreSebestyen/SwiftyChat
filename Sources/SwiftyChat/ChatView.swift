@@ -13,8 +13,10 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     
     @Binding private var messages: [Message]
     @Binding public var loadMore: Bool
+    @Binding private var isScrolledUp: Bool
     
     private var inputView: () -> AnyView
+    private var previousLastMessageId: String
 
     private var onMessageCellTapped: (Message) -> Void = { msg in print(msg.messageKind) }
     private var messageCellContextMenu: (Message) -> AnyView = { _ in EmptyView().embedInAnyView() }
@@ -22,18 +24,16 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var contactCellFooterSection: (ContactItem, Message) -> [ContactCellButton] = { _, _ in [] }
     private var onAttributedTextTappedCallback: () -> AttributedTextTappedCallback = { return AttributedTextTappedCallback() }
     private var onCarouselItemAction: (CarouselItemButton, Message) -> Void = { (_, _) in }
-    private var onLoadMoreMessages: () -> Void = {   }
     private var inset: EdgeInsets
     private var dateFormater: DateFormatter = DateFormatter()
     private var dateHeaderTimeInterval: TimeInterval
     private var shouldShowGroupChatHeaders: Bool
     
+    
     @Binding private var scrollToBottom: Bool
     @State private var isKeyboardActive = false
     
     @State private var contentSizeThatFits: CGSize = .zero
-    @State private var isScrolledUp: Bool = false
-    
  
     private var messageEditorHeight: CGFloat {
         min(
@@ -67,7 +67,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
         ScrollView(.vertical, showsIndicators: false) {
             ScrollViewReader { proxy in
                 LazyVStack {
-                    ProgressView().onAppear{
+                    ProgressView().onAppear {
                         loadMore = true
                     }
                     ForEach(messages) { message in
@@ -96,6 +96,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                     alignment: message.isSender ? .trailing: .leading
                                 )
                         }
+                        
                         chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
                     }
                    
@@ -105,11 +106,18 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 }
                 .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
                 .onChange(of: scrollToBottom) { value in
-                    if value && !isScrolledUp {
+                    if value {
                         withAnimation {
                             proxy.scrollTo("bottom")
                         }
                         scrollToBottom = false
+                    }
+                }
+                .onChange(of: loadMore) { value in
+                    if !value {
+                        withAnimation {
+                            proxy.scrollTo(previousLastMessageId)
+                        }
                     }
                 }
                 .iOS {
@@ -235,6 +243,8 @@ public extension ChatView {
         messages: Binding<[Message]>,
         scrollToBottom: Binding<Bool> = .constant(false),
         loadMore: Binding<Bool> = .constant(false),
+        isScrolledUp: Binding<Bool> = .constant(false),
+        previousLastMessageId: String,
         dateHeaderTimeInterval: TimeInterval = 3600,
         shouldShowGroupChatHeaders: Bool = false,
         inputView: @escaping () -> AnyView,
@@ -243,7 +253,9 @@ public extension ChatView {
         _messages = messages
         self.inputView = inputView
         _loadMore = loadMore
+        _isScrolledUp = isScrolledUp
         _scrollToBottom = scrollToBottom
+        self.previousLastMessageId = previousLastMessageId
         self.inset = inset
         self.dateFormater.dateStyle = .medium
         self.dateFormater.timeStyle = .short
