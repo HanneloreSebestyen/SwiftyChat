@@ -14,6 +14,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @Binding private var messages: [Message]
     @Binding public var loadMore: Bool
     @Binding private var isScrolledUp: Bool
+   
+    private let offset: Int = 10
     
     private var inputView: () -> AnyView
     private var previousLastMessageId: String
@@ -64,41 +66,56 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     }
     
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
-        ScrollView(.vertical, showsIndicators: false) {
             ScrollViewReader { proxy in
-                LazyVStack {
-                    ProgressView().onAppear {
-                        loadMore = true
-                    }
-                    ForEach(messages) { message in
-                        let showDateheader = shouldShowDateHeader(
-                            messages: messages,
-                            thisMessage: message
-                        )
-                        let shouldShowDisplayName = shouldShowDisplayName(
-                            messages: messages,
-                            thisMessage: message,
-                            dateHeaderShown: showDateheader
-                        )
+                VStack {
+                    List(messages.indices, id: \.self) { index in
+                       
+                            let message = messages[index]
                         
-                        if showDateheader {
-                            Text(dateFormater.string(from: message.date))
-                                .font(.subheadline)
+                            let showDateheader = shouldShowDateHeader(
+                                messages: messages,
+                                thisMessage: message
+                            )
+                            let shouldShowDisplayName = shouldShowDisplayName(
+                                messages: messages,
+                                thisMessage: message,
+                                dateHeaderShown: showDateheader
+                            )
+                            
+                            if showDateheader {
+                                Text(dateFormater.string(from: message.date))
+                                    .font(.subheadline)
+                                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                            }
+                            
+                            if shouldShowDisplayName {
+                                Text(message.user.userName)
+                                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                    .font(.caption)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(
+                                        maxWidth: geometry.size.width * (UIDevice.isLandscape ? 0.6 : 0.75),
+                                        minHeight: 1,
+                                        alignment: message.isSender ? .trailing: .leading
+                                    )
+                            }
+                            
+                            chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
+                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                            .onAppear {
+                                self.listItemAppears(message)
+                            }
+                       
+                        
+                        if self.loadMore && self.messages.isLastItem(message) {
+                            Divider()
+                            Text("Loading ...")
+                                .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                .padding(.vertical)
                         }
                         
-                        if shouldShowDisplayName {
-                            Text(message.user.userName)
-                                .font(.caption)
-                                .multilineTextAlignment(.trailing)
-                                .frame(
-                                    maxWidth: geometry.size.width * (UIDevice.isLandscape ? 0.6 : 0.75),
-                                    minHeight: 1,
-                                    alignment: message.isSender ? .trailing: .leading
-                                )
-                        }
-                        
-                        chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
                     }
+                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                    
                     Spacer()
                         .frame(height: inset.bottom)
@@ -113,11 +130,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         scrollToBottom = false
                     }
                 }
-                .onChange(of: loadMore) { value in
-                    if !value {
-                        proxy.scrollTo(previousLastMessageId, anchor: .top)
-                    }
-                }
+
                 .iOS {
                     // Auto Scroll with Keyboard Notification
                     $0.onReceive(
@@ -136,17 +149,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     )
                 }
             }
-        }
-        .simultaneousGesture(
-               DragGesture().onChanged({
-                   let isScrollDown = 0 < $0.translation.height
-                   if isScrollDown {
-                       isScrolledUp = true
-                   } else {
-                       isScrolledUp = false
-                   }
-                  
-               }))
         .background(Color.clear)
             .padding(.bottom, messageEditorHeight + 30)
     }
@@ -293,5 +295,46 @@ public extension ChatView {
     /// Triggered when the carousel button tapped.
     func onCarouselItemAction(action: @escaping (CarouselItemButton, Message) -> Void) -> Self {
         then({ $0.onCarouselItemAction = action })
+    }
+}
+
+public extension ChatView {
+    private func listItemAppears<Message: Identifiable>(_ item: Message) {
+        if messages.isThresholdItem(offset: offset,
+                                 item: item) {
+            loadMore = true
+        }
+    }
+}
+
+extension RandomAccessCollection where Self.Element: Identifiable {
+    public func isLastItem<Item: Identifiable>(_ item: Item) -> Bool {
+        guard !isEmpty else {
+            return false
+        }
+        
+        guard let itemIndex = lastIndex(where: { AnyHashable($0.id) == AnyHashable(item.id) }) else {
+            return false
+        }
+        
+        let distance = self.distance(from: itemIndex, to: endIndex)
+        return distance == 1
+    }
+    
+    public func isThresholdItem<Item: Identifiable>(
+        offset: Int,
+        item: Item
+    ) -> Bool {
+        guard !isEmpty else {
+            return false
+        }
+        
+        guard let itemIndex = lastIndex(where: { AnyHashable($0.id) == AnyHashable(item.id) }) else {
+            return false
+        }
+        
+        let distance = self.distance(from: itemIndex, to: endIndex)
+        let offset = offset < count ? offset : count - 1
+        return offset == (distance - 1)
     }
 }
