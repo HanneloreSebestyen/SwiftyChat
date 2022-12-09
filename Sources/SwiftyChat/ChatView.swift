@@ -192,11 +192,10 @@ internal extension ChatView {
 public extension ChatView {
     func shouldShowDateHeader(messages: [Message], thisMessage: Message) -> Bool {
         if let messageIndex = messages.firstIndex(where: { $0.id == thisMessage.id }) {
-            if messageIndex == 0 { return false }
             if messageIndex == messages.count - 1 { return true }
-            let prevMessage = messages[messageIndex]
-            let currMessage = messages[messageIndex - 1]
-            let timeInterval = currMessage.date - prevMessage.date
+            let prevMessage = messages[messageIndex + 1]
+            let currMessage = messages[messageIndex]
+            let timeInterval = prevMessage.date - currMessage.date
             return timeInterval > dateHeaderTimeInterval
         }
         return false
