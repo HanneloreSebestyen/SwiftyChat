@@ -119,7 +119,15 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         
                     }
                     .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                   
+                    .gesture(
+                       DragGesture().onChanged { value in
+                          if value.translation.height > 0 {
+                             isScrolledUp = true
+                          } else {
+                             isScrolledUp = false
+                          }
+                       }
+                    )
                     Spacer()
                         .frame(height: inset.bottom)
                         .id("bottom")
