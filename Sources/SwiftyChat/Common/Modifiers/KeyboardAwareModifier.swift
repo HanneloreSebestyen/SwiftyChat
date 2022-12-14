@@ -35,9 +35,6 @@ internal struct KeyboardAwareModifier: ViewModifier {
             }
     }
     
-
-       
-    
 }
 
 struct KeyboardAdaptive: ViewModifier {

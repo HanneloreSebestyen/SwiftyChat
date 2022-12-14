@@ -72,7 +72,6 @@ public struct BasicInputView: View {
                         .padding(8)
                 )
         })
-        .padding(.bottom, 20)
         .disabled(message.isEmpty)
     }
 
