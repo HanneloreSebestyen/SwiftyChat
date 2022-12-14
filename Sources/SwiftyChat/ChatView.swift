@@ -39,7 +39,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
  
     private var messageEditorHeight: CGFloat {
         min(
-            contentSizeThatFits.height,
+            50,
             0.25 * UIScreen.main.bounds.height
         )
     }
@@ -49,13 +49,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
             ZStack(alignment: .bottom) {
                 chatView(in: geometry)
                 inputView()
-                    .onPreferenceChange(ContentSizeThatFitsKey.self) {
-                        if $0.height > 50 {
-                            contentSizeThatFits = $0
-                        } else {
-                            contentSizeThatFits.height = 50
-                        }
-                    }
                     .frame(height: messageEditorHeight)
                 PIPVideoCell<Message>()
             }

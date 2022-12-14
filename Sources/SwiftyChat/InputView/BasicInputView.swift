@@ -47,22 +47,14 @@ public struct BasicInputView: View {
 
     private var messageEditorHeight: CGFloat {
         min(
-            self.contentSizeThatFits.height,
+            50,
             0.25 * UIScreen.main.bounds.height
         )
     }
 
     private var messageEditorView: some View {
         TextEditor(text: $message)
-                .onPreferenceChange(ContentSizeThatFitsKey.self) {
-                    if $0.height > 50 {
-                        self.contentSizeThatFits = $0
-                    } else {
-                        self.contentSizeThatFits.height = 50
-                    }
-                }
                 .frame(height: messageEditorHeight)
-
     }
 
     private var sendButton: some View {
@@ -80,6 +72,7 @@ public struct BasicInputView: View {
                         .padding(8)
                 )
         })
+        .padding(.bottom, 20)
         .disabled(message.isEmpty)
     }
 
