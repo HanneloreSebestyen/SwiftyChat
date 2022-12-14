@@ -14,6 +14,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @Binding private var messages: [Message]
     @Binding public var loadMore: Bool
     @Binding private var isScrolledUp: Bool
+    @State var message: String = ""
    
     private let offset: Int = 10
     
@@ -49,10 +50,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
             ZStack(alignment: .bottom) {
                 chatView(in: geometry)
                 inputView()
-                    .frame(height: messageEditorHeight)
                 PIPVideoCell<Message>()
             }
-            .iOS { $0.keyboardAwarePadding() }
+            .keyboardAdaptive()
         }
         .environmentObject(DeviceOrientationInfo())
         .environmentObject(VideoManager<Message>())
