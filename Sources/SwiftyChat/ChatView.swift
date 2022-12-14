@@ -50,11 +50,13 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 chatView(in: geometry)
                 inputView()
                     .onPreferenceChange(ContentSizeThatFitsKey.self) {
-                        contentSizeThatFits = $0
+                        if $0.height > 50 {
+                            contentSizeThatFits = $0
+                        } else {
+                            contentSizeThatFits.height = 50
+                        }
                     }
                     .frame(height: messageEditorHeight)
-                    .padding(.vertical, 20)
-                
                 PIPVideoCell<Message>()
             }
             .iOS { $0.keyboardAwarePadding() }
@@ -141,27 +143,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         scrollToBottom = false
                     }
                 }
-
-                .iOS {
-                    // Auto Scroll with Keyboard Notification
-                    $0.onReceive(
-                        NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
-                            .debounce(for: .milliseconds(400), scheduler: RunLoop.main),
-                        perform: { _ in
-                            if !isKeyboardActive {
-                                isKeyboardActive = true
-                                scrollToBottom = true
-                            }
-                        }
-                    )
-                    .onReceive(
-                        NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification),
-                        perform: { _ in isKeyboardActive = false }
-                    )
-                }
             }
         .background(Color.clear)
-            .padding(.bottom, messageEditorHeight + 30)
+        .padding(.bottom, messageEditorHeight + 30)
     }
     
 }

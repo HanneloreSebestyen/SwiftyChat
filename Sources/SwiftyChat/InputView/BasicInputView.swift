@@ -53,15 +53,16 @@ public struct BasicInputView: View {
     }
 
     private var messageEditorView: some View {
-        MultilineTextField(
-            attributedText: self.internalAttributedMessage,
-            placeholder: placeholder,
-            isEditing: self.$isEditing
-        )
-        .onPreferenceChange(ContentSizeThatFitsKey.self) {
-            self.contentSizeThatFits = $0
-        }
-        .frame(height: self.messageEditorHeight)
+        TextEditor(text: $message)
+                .onPreferenceChange(ContentSizeThatFitsKey.self) {
+                    if $0.height > 50 {
+                        self.contentSizeThatFits = $0
+                    } else {
+                        self.contentSizeThatFits.height = 50
+                    }
+                }
+                .frame(height: messageEditorHeight)
+
     }
 
     private var sendButton: some View {
