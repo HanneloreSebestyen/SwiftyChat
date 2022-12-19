@@ -31,12 +31,22 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var dateFormater: DateFormatter = DateFormatter()
     private var dateHeaderTimeInterval: TimeInterval
     private var shouldShowGroupChatHeaders: Bool
-    
-    
+    @State private var menuIsPresented: Bool = false
     @Binding private var scrollToBottom: Bool
-    @State private var isKeyboardActive = false
     
-    @State private var contentSizeThatFits: CGSize = .zero
+   
+    @GestureState var isDetectingLongPress = false
+    var longPress: some Gesture {
+        LongPressGesture(minimumDuration: 0.5)
+            .updating($isDetectingLongPress) { currentstate, gestureState,
+                    transaction in
+                gestureState = currentstate
+            }
+            .onEnded { finished in
+                self.menuIsPresented = true
+             
+            }
+    }
  
     private var messageEditorHeight: CGFloat {
         min(
@@ -63,10 +73,11 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
             ScrollViewReader { proxy in
                 VStack {
-                    List(messages.indices, id: \.self) { index in
-                       
+                    ScrollView {
+                        ForEach(messages.indices, id: \.self) { index in
+                            
                             let message = messages[index]
-                        
+                            
                             let showDateheader = shouldShowDateHeader(
                                 messages: messages,
                                 thisMessage: message
@@ -79,7 +90,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             
                             if shouldShowDisplayName {
                                 Text(message.user.userName)
-                                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                //  .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                                     .font(.caption)
                                     .multilineTextAlignment(.trailing)
                                     .frame(
@@ -90,42 +101,44 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             }
                             
                             chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
-                            .listRowSeparator(.hidden)
-                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                            .onAppear {
-                                self.listItemAppears(message)
-                            }
-                        
-                        if showDateheader {
-                            VStack(alignment: .center) {
-                                Text(dateFormater.string(from: message.date))
-                                    .font(.subheadline)
-                            }.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                                .frame(width: geometry.size.width)
-                        }
-                       
-                        
-                        if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
-                            Text("Loading ...")
-                                .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                                .padding(.vertical)
                                 .listRowSeparator(.hidden)
+                            // .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                .onAppear {
+                                    self.listItemAppears(message)
+                                }
+                            
+                            if showDateheader {
+                                VStack(alignment: .center) {
+                                    Text(dateFormater.string(from: message.date))
+                                        .font(.subheadline)
+                                }
+                                //.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                .frame(width: geometry.size.width)
+                            }
+                            
+                            
+                            if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
+                                Text("Loading ...")
+                                // .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                    .padding(.vertical)
+                                    .listRowSeparator(.hidden)
+                            }
+                            
                         }
-                        
+                        // .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                        .gesture(
+                            DragGesture().onChanged { value in
+                                if value.translation.height > 0 {
+                                    isScrolledUp = true
+                                } else {
+                                    isScrolledUp = false
+                                }
+                            }
+                        )
+                        Spacer()
+                            .frame(height: inset.bottom)
+                            .id("bottom")
                     }
-                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                    .gesture(
-                       DragGesture().onChanged { value in
-                          if value.translation.height > 0 {
-                             isScrolledUp = true
-                          } else {
-                             isScrolledUp = false
-                          }
-                       }
-                    )
-                    Spacer()
-                        .frame(height: inset.bottom)
-                        .id("bottom")
                 }
                 .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
                 .onChange(of: scrollToBottom) { value in
@@ -172,6 +185,7 @@ internal extension ChatView {
         .modifier(CellEdgeInsetsModifier(isSender: message.isSender))
         .id(message.id)
     }
+
 }
 
 public extension ChatView {
@@ -210,6 +224,15 @@ public extension ChatView {
     func shouldShowAvatarForMessage(forThisMessage: Bool) -> Bool {
         (forThisMessage || !shouldShowGroupChatHeaders)
     }
+    
+//    func customMenuView(for message: Message) -> some View {
+//        VStack {
+//          messageCellContextMenu(message)
+//        }
+//    }
+
+    
+  
 }
 
 // MARK: - Initializers
@@ -326,3 +349,60 @@ extension RandomAccessCollection where Self.Element: Identifiable {
         return offset == (distance - 1)
     }
 }
+
+struct CustomMenuView<Content: View >: View {
+   
+    let content: Content // content of the modal
+    
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 30)
+                .foregroundColor(Color.white)
+                .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                .shadow(color: Color.gray.opacity(0.4), radius: 4)
+            
+            ScrollView {
+                content
+            }.padding(.vertical, 40)
+            
+//            VStack {
+//                Spacer()
+//                ModalButton(showModal: self.$showModal)
+//            }.padding(.vertical)
+            
+        }
+        .padding(50)
+    }
+}
+
+extension CustomMenuView {
+    
+    /**
+     Button used to close modal
+     */
+//    struct ModalButton: View {
+//        @Binding var showModal: Bool
+//
+//        var body: some View {
+//            // button to search a new handle
+//            Button(action: {
+//                self.showModal = false
+//                print("close modal")
+//            }) {
+//                Text("Close Insight")
+//                    .foregroundColor(.white)
+//                    .font(.headline)
+//                    .padding()
+//                    .background(Color("ButtonColor"))
+//                    .cornerRadius(26)
+//                    .padding(50)
+//                    .shadow(color: Color.gray.opacity(0.5), radius: 8)
+//
+//            }
+//        }
+//    }
+//
+    
+}
+
+
