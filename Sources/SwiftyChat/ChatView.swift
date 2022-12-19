@@ -73,11 +73,10 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
             ScrollViewReader { proxy in
                 VStack {
-                    ScrollView {
-                        ForEach(messages.indices, id: \.self) { index in
-                            
+                    List(messages.indices, id: \.self) { index in
+                       
                             let message = messages[index]
-                            
+                        
                             let showDateheader = shouldShowDateHeader(
                                 messages: messages,
                                 thisMessage: message
@@ -90,7 +89,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             
                             if shouldShowDisplayName {
                                 Text(message.user.userName)
-                                //  .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                                     .font(.caption)
                                     .multilineTextAlignment(.trailing)
                                     .frame(
@@ -101,44 +100,42 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             }
                             
                             chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
-                                .listRowSeparator(.hidden)
-                            // .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                                .onAppear {
-                                    self.listItemAppears(message)
-                                }
-                            
-                            if showDateheader {
-                                VStack(alignment: .center) {
-                                    Text(dateFormater.string(from: message.date))
-                                        .font(.subheadline)
-                                }
-                                //.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                            .listRowSeparator(.hidden)
+                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                            .onAppear {
+                                self.listItemAppears(message)
+                            }
+                        
+                        if showDateheader {
+                            VStack(alignment: .center) {
+                                Text(dateFormater.string(from: message.date))
+                                    .font(.subheadline)
+                            }.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                                 .frame(width: geometry.size.width)
-                            }
-                            
-                            
-                            if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
-                                Text("Loading ...")
-                                // .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                                    .padding(.vertical)
-                                    .listRowSeparator(.hidden)
-                            }
-                            
                         }
-                        // .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                        .gesture(
-                            DragGesture().onChanged { value in
-                                if value.translation.height > 0 {
-                                    isScrolledUp = true
-                                } else {
-                                    isScrolledUp = false
-                                }
-                            }
-                        )
-                        Spacer()
-                            .frame(height: inset.bottom)
-                            .id("bottom")
+                       
+                        
+                        if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
+                            Text("Loading ...")
+                                .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                                .padding(.vertical)
+                                .listRowSeparator(.hidden)
+                        }
+                        
                     }
+                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                    .gesture(
+                       DragGesture().onChanged { value in
+                          if value.translation.height > 0 {
+                             isScrolledUp = true
+                          } else {
+                             isScrolledUp = false
+                          }
+                       }
+                    )
+                    Spacer()
+                        .frame(height: inset.bottom)
+                        .id("bottom")
                 }
                 .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
                 .onChange(of: scrollToBottom) { value in
@@ -173,6 +170,7 @@ internal extension ChatView {
         )
         .onTapGesture { onMessageCellTapped(message) }
         .contextMenu(menuItems: { messageCellContextMenu(message) })
+
         .modifier(
             AvatarModifier<Message, User>(
                 message: message,
@@ -224,15 +222,6 @@ public extension ChatView {
     func shouldShowAvatarForMessage(forThisMessage: Bool) -> Bool {
         (forThisMessage || !shouldShowGroupChatHeaders)
     }
-    
-//    func customMenuView(for message: Message) -> some View {
-//        VStack {
-//          messageCellContextMenu(message)
-//        }
-//    }
-
-    
-  
 }
 
 // MARK: - Initializers
