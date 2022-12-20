@@ -53,8 +53,12 @@ public struct BasicInputView: View {
     }
 
     private var messageEditorView: some View {
-        TextEditor(text: $message)
-                .frame(height: messageEditorHeight)
+        ZStack(alignment: .leading) {
+            Text("Write your message...")
+            TextEditor(text: $message)
+                .opacity(message.isEmpty ? 0.5 : 1)
+        }
+        .frame(height: 40)
     }
 
     private var sendButton: some View {

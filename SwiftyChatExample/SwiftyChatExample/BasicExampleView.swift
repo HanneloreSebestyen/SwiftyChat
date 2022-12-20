@@ -61,8 +61,8 @@ struct BasicExampleView: View {
         }
         // ▼ Required
         .environmentObject(ChatMessageCellStyle.basicStyle)
-        .navigationBarTitle("Basic")
-        .listStyle(PlainListStyle())
+       // .navigationBarTitle("Basic")
+      //  .listStyle(PlainListStyle())
     }
 }
 
