@@ -47,6 +47,7 @@ struct BasicExampleView: View {
             case .text(let text):
                 return Button(action: {
                     print("Copy Context Menu tapped!!")
+                    print(text)
                     UIPasteboard.general.string = text
                 }) {
                     Text("Copy")
@@ -65,8 +66,3 @@ struct BasicExampleView: View {
     }
 }
 
-struct BasicExampleView_Previews: PreviewProvider {
-    static var previews: some View {
-        BasicExampleView()
-    }
-}

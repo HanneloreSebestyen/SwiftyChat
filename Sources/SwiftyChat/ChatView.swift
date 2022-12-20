@@ -15,12 +15,11 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @Binding public var loadMore: Bool
     @Binding private var isScrolledUp: Bool
     @State var message: String = ""
-   
     private let offset: Int = 10
     
     private var inputView: () -> AnyView
     private var previousLastMessageId: String
-
+    
     private var onMessageCellTapped: (Message) -> Void = { msg in print(msg.messageKind) }
     private var messageCellContextMenu: (Message) -> AnyView = { _ in EmptyView().embedInAnyView() }
     private var onQuickReplyItemSelected: (QuickReplyItem) -> Void = { _ in }
@@ -34,20 +33,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @State private var menuIsPresented: Bool = false
     @Binding private var scrollToBottom: Bool
     
-   
-    @GestureState var isDetectingLongPress = false
-    var longPress: some Gesture {
-        LongPressGesture(minimumDuration: 0.5)
-            .updating($isDetectingLongPress) { currentstate, gestureState,
-                    transaction in
-                gestureState = currentstate
-            }
-            .onEnded { finished in
-                self.menuIsPresented = true
-             
-            }
-    }
- 
     private var messageEditorHeight: CGFloat {
         min(
             50,
@@ -71,86 +56,104 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     }
     
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
-            ScrollViewReader { proxy in
-                VStack {
-                    List(messages.indices, id: \.self) { index in
-                       
-                            let message = messages[index]
-                        
-                            let showDateheader = shouldShowDateHeader(
-                                messages: messages,
-                                thisMessage: message
-                            )
-                            let shouldShowDisplayName = shouldShowDisplayName(
-                                messages: messages,
-                                thisMessage: message,
-                                dateHeaderShown: showDateheader
-                            )
-                            
-                            if shouldShowDisplayName {
-                                Text(message.user.userName)
-                                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                                    .font(.caption)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(
-                                        maxWidth: geometry.size.width * (UIDevice.isLandscape ? 0.6 : 0.75),
-                                        minHeight: 1,
-                                        alignment: message.isSender ? .trailing: .leading
-                                    )
-                            }
-                            
-                            chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
-                            .listRowSeparator(.hidden)
-                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                            .onAppear {
-                                self.listItemAppears(message)
-                            }
-                        
-                        if showDateheader {
-                            VStack(alignment: .center) {
-                                Text(dateFormater.string(from: message.date))
-                                    .font(.subheadline)
-                            }.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                                .frame(width: geometry.size.width)
-                        }
-                       
-                        
-                        if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
-                            Text("Loading ...")
-                                .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                                .padding(.vertical)
-                                .listRowSeparator(.hidden)
-                        }
-                        
-                    }
-                    .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                    .gesture(
-                       DragGesture().onChanged { value in
-                          if value.translation.height > 0 {
-                             isScrolledUp = true
-                          } else {
-                             isScrolledUp = false
-                          }
-                       }
+        ScrollViewReader { proxy in
+            VStack {
+                List(messages.indices, id: \.self) { index in
+                    
+                    let message = messages[index]
+                    
+                    let showDateheader = shouldShowDateHeader(
+                        messages: messages,
+                        thisMessage: message
                     )
-                    Spacer()
-                        .frame(height: inset.bottom)
-                        .id("bottom")
-                }
-                .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
-                .onChange(of: scrollToBottom) { value in
-                    if value {
-                        withAnimation {
-                            proxy.scrollTo("bottom")
-                        }
-                        scrollToBottom = false
+                    let shouldShowDisplayName = shouldShowDisplayName(
+                        messages: messages,
+                        thisMessage: message,
+                        dateHeaderShown: showDateheader
+                    )
+                    
+                    if shouldShowDisplayName {
+                        Text(message.user.userName)
+                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                            .font(.caption)
+                            .multilineTextAlignment(.trailing)
+                            .frame(
+                                maxWidth: geometry.size.width * (UIDevice.isLandscape ? 0.6 : 0.75),
+                                minHeight: 1,
+                                alignment: message.isSender ? .trailing: .leading
+                            )
                     }
+                    chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
+                        .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                        .onAppear {
+                            self.listItemAppears(message)
+                        }
+                        .listRowSeparator(.hidden)
+                    if showDateheader {
+                        VStack(alignment: .center) {
+                            Text(dateFormater.string(from: message.date))
+                                .font(.subheadline)
+                        }.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                            .frame(width: geometry.size.width)
+                    }
+                    
+                    
+                    if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
+                        Text("Loading ...")
+                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                            .padding(.vertical)
+                            .listRowSeparator(.hidden)
+                    }
+                    
+                }
+                .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
+                .gesture(
+                    DragGesture().onChanged { value in
+                        if value.translation.height > 0 {
+                            isScrolledUp = true
+                        } else {
+                            isScrolledUp = false
+                        }
+                    }
+                )
+                Spacer()
+                    .frame(height: inset.bottom)
+                    .id("bottom")
+                
+            }
+            .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
+            .onChange(of: scrollToBottom) { value in
+                if value {
+                    withAnimation {
+                        proxy.scrollTo("bottom")
+                    }
+                    scrollToBottom = false
                 }
             }
+            .fullScreenCover(isPresented: $menuIsPresented, content: {
+                ZStack{
+                    Color.black.opacity(0.2).edgesIgnoringSafeArea(.all)
+                    VStack {
+                        Button(action: {
+                            print("Copy Context Menu tapped!!")
+                            print(message)
+                            UIPasteboard.general.string = message
+                            menuIsPresented = false
+                        }) {
+                            Text("Copy")
+                            Image(systemName: "doc.on.doc")
+                        }
+                    }
+                }
+                .background(BackgroundBlurView())
+                .onTapGesture(perform: {
+                    menuIsPresented = false
+                })
+            })
+        }
         .background(Color.clear)
         .padding(.bottom, messageEditorHeight + 30)
     }
-    
 }
 
 internal extension ChatView {
@@ -169,8 +172,18 @@ internal extension ChatView {
             onCarouselItemAction: onCarouselItemAction
         )
         .onTapGesture { onMessageCellTapped(message) }
-        .contextMenu(menuItems: { messageCellContextMenu(message) })
-
+        .onLongPressGesture(perform: {
+            switch message.messageKind {
+            case .text(let text):
+                menuIsPresented = true
+                self.message = text
+            default:
+                break
+            }
+            
+            print(message.messageKind.description)
+            print(message.id)
+        })
         .modifier(
             AvatarModifier<Message, User>(
                 message: message,
@@ -183,7 +196,12 @@ internal extension ChatView {
         .modifier(CellEdgeInsetsModifier(isSender: message.isSender))
         .id(message.id)
     }
-
+    
+    private func emptyView() -> some View {
+        menuIsPresented = false
+        return  EmptyView()
+    }
+    
 }
 
 public extension ChatView {
@@ -238,7 +256,7 @@ public extension ChatView {
     ///                                 Also only shows avatar for first message in chain.
     ///                                 (disabled by default)
     ///   - inputView: inputView view to provide message
-    ///   
+    ///
     init(
         messages: Binding<[Message]>,
         scrollToBottom: Binding<Bool> = .constant(false),
@@ -274,7 +292,7 @@ public extension ChatView {
     
     /// Present ContextMenu when a message cell is long pressed.
     func messageCellContextMenu(_ action: @escaping (Message) -> AnyView) -> Self {
-        then({ $0.messageCellContextMenu = action })
+        return then({ $0.messageCellContextMenu = action})
     }
     
     /// Triggered when a quickReplyItem is selected (ChatMessageKind.quickReply)
@@ -301,97 +319,13 @@ public extension ChatView {
 public extension ChatView {
     private func listItemAppears<Message: Identifiable>(_ item: Message) {
         if messages.isThresholdItem(offset: offset,
-                                 item: item) {
+                                    item: item) {
             loadMore = true
         }
     }
 }
 
-extension RandomAccessCollection where Self.Element: Identifiable {
-    public func isLastItem<Item: Identifiable>(_ item: Item) -> Bool {
-        guard !isEmpty else {
-            return false
-        }
-        
-        guard let itemIndex = lastIndex(where: { AnyHashable($0.id) == AnyHashable(item.id) }) else {
-            return false
-        }
-        
-        let distance = self.distance(from: itemIndex, to: endIndex)
-        return distance == 1
-    }
-    
-    public func isThresholdItem<Item: Identifiable>(
-        offset: Int,
-        item: Item
-    ) -> Bool {
-        guard !isEmpty else {
-            return false
-        }
-        
-        guard let itemIndex = lastIndex(where: { AnyHashable($0.id) == AnyHashable(item.id) }) else {
-            return false
-        }
-        
-        let distance = self.distance(from: itemIndex, to: endIndex)
-        let offset = offset < count ? offset : count - 1
-        return offset == (distance - 1)
-    }
-}
 
-struct CustomMenuView<Content: View >: View {
-   
-    let content: Content // content of the modal
-    
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 30)
-                .foregroundColor(Color.white)
-                .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                .shadow(color: Color.gray.opacity(0.4), radius: 4)
-            
-            ScrollView {
-                content
-            }.padding(.vertical, 40)
-            
-//            VStack {
-//                Spacer()
-//                ModalButton(showModal: self.$showModal)
-//            }.padding(.vertical)
-            
-        }
-        .padding(50)
-    }
-}
 
-extension CustomMenuView {
-    
-    /**
-     Button used to close modal
-     */
-//    struct ModalButton: View {
-//        @Binding var showModal: Bool
-//
-//        var body: some View {
-//            // button to search a new handle
-//            Button(action: {
-//                self.showModal = false
-//                print("close modal")
-//            }) {
-//                Text("Close Insight")
-//                    .foregroundColor(.white)
-//                    .font(.headline)
-//                    .padding()
-//                    .background(Color("ButtonColor"))
-//                    .cornerRadius(26)
-//                    .padding(50)
-//                    .shadow(color: Color.gray.opacity(0.5), radius: 8)
-//
-//            }
-//        }
-//    }
-//
-    
-}
 
 
