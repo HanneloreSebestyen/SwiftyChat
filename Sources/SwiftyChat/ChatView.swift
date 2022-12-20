@@ -51,12 +51,13 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     }
     
     @ViewBuilder private func chatView() -> some View {
-            ScrollView {
+        ScrollView {
+            ScrollViewReader { scrollViewProxy in
                 ForEach(messages) { message in
                     HStack {
                         Spacer()
                         HStack {
-                          //  chatMessageCellContainer(in: CGSize(width: 200, height: 50), with: message, with: false)
+                            //  chatMessageCellContainer(in: CGSize(width: 200, height: 50), with: message, with: false)
                             Text(message.messageKind.description)
                                 .foregroundColor(.white)
                         }
@@ -68,6 +69,16 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     .padding(.top, 8)
                 }
                 HStack { Spacer() }
+                    .id("bottom")
+                    .onChange(of: scrollToBottom) { value in
+                        if value {
+                            withAnimation {
+                                scrollViewProxy.scrollTo("bottom")
+                            }
+                            scrollToBottom = false
+                        }
+                    }
+                }
             }
             .safeAreaInset(edge: .bottom) { inputView().background(Color.white)}
     }
