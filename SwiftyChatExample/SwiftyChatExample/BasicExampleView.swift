@@ -10,27 +10,35 @@ import SwiftyChat
 
 struct BasicExampleView: View {
     
-    @State var messages: [MockMessages.ChatMessageItem] = MockMessages.generateMessage(kind: .Text, count: 20)
-    
+  //  
+    @ObservedObject var viewModel: BasicViewModel = BasicViewModel()
     // MARK: - InputBarView variables
     @State private var message = ""
     @State private var isEditing = false
+    @State var scrollToBottom = false
     
     var body: some View {
         chatView
+            .onReceive(viewModel.$messages.debounce(for: .milliseconds(650), scheduler: RunLoop.main),
+                       perform: { _ in
+                    scrollToBottom = true
+                }
+            )
     }
     
     private var chatView: some View {
-        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages, previousLastMessageId: "") {
+        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $viewModel.messages, scrollToBottom: $scrollToBottom, previousLastMessageId: "") {
 
             BasicInputView(
                 message: $message,
                 isEditing: $isEditing,
                 placeholder: "Type something",
                 onCommit: { messageKind in
-                    self.messages.append(
-                        .init(user: MockMessages.sender, messageKind: messageKind, isSender: true)
-                    )
+//                    self.messages.append(
+//                        .init(user: MockMessages.sender, messageKind: messageKind, isSender: true)
+//                    )
+                    viewModel.addMessage(message: .init(user: MockMessages.sender, messageKind: messageKind, isSender: true))
+                  //  scrollToBottom = true
                 }
             )
             .padding(8)
@@ -41,6 +49,7 @@ struct BasicExampleView: View {
             .embedInAnyView()
             
         }
+     
         // ▼ Optional, Present context menu when cell long pressed
         .messageCellContextMenu { message -> AnyView in
             switch message.messageKind {
@@ -60,7 +69,9 @@ struct BasicExampleView: View {
             }
         }
         // ▼ Required
+
         .environmentObject(ChatMessageCellStyle.basicStyle)
+       
        // .navigationBarTitle("Basic")
       //  .listStyle(PlainListStyle())
     }

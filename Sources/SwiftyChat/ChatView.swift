@@ -57,7 +57,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     HStack {
                         Spacer()
                         HStack {
-                            //  chatMessageCellContainer(in: CGSize(width: 200, height: 50), with: message, with: false)
                             Text(message.messageKind.description)
                                 .foregroundColor(.white)
                         }
