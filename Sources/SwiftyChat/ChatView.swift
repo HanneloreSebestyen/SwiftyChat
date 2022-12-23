@@ -44,10 +44,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
                 chatView(in: geometry)
-                inputView()
                 PIPVideoCell<Message>()
             }
-            .keyboardAdaptive()
         }
         .environmentObject(DeviceOrientationInfo())
         .environmentObject(VideoManager<Message>())
@@ -56,12 +54,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     }
     
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
-        ScrollViewReader { proxy in
-            VStack {
-                List(messages.indices, id: \.self) { index in
-                    
-                    let message = messages[index]
-                    
+        ScrollView {
+            ScrollViewReader { proxy in
+                ForEach(messages) { message in
                     let showDateheader = shouldShowDateHeader(
                         messages: messages,
                         thisMessage: message
@@ -71,6 +66,14 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         thisMessage: message,
                         dateHeaderShown: showDateheader
                     )
+                    
+                    if showDateheader {
+                        VStack(alignment: .center) {
+                            Text(dateFormater.string(from: message.date))
+                                .font(.subheadline)
+                        }
+                            .frame(width: geometry.size.width)
+                    }
                     
                     if shouldShowDisplayName {
                         Text(message.user.userName)
@@ -84,29 +87,13 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             )
                     }
                     chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
-                        .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                        .onAppear {
-                            self.listItemAppears(message)
-                        }
-                        .listRowSeparator(.hidden)
-                    if showDateheader {
-                        VStack(alignment: .center) {
-                            Text(dateFormater.string(from: message.date))
-                                .font(.subheadline)
-                        }.rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
-                            .frame(width: geometry.size.width)
-                    }
-                    
                     
                     if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
                         Text("Loading ...")
-                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                             .padding(.vertical)
-                            .listRowSeparator(.hidden)
                     }
                     
                 }
-                .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                 .gesture(
                     DragGesture().onChanged { value in
                         if value.translation.height > 0 {
@@ -119,40 +106,20 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 Spacer()
                     .frame(height: inset.bottom)
                     .id("bottom")
+                    .onChange(of: scrollToBottom) { value in
+                        if value {
+                            withAnimation {
+                                proxy.scrollTo("bottom")
+                            }
+                            scrollToBottom = false
+                        }
+                    }
                 
             }
             .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
-            .onChange(of: scrollToBottom) { value in
-                if value {
-                    withAnimation {
-                        proxy.scrollTo("bottom")
-                    }
-                    scrollToBottom = false
-                }
-            }
-            .fullScreenCover(isPresented: $menuIsPresented, content: {
-                ZStack{
-                    Color.black.opacity(0.2).edgesIgnoringSafeArea(.all)
-                    VStack {
-                        Button(action: {
-                            print("Copy Context Menu tapped!!")
-                            print(message)
-                            UIPasteboard.general.string = message
-                            menuIsPresented = false
-                        }) {
-                            Text("Copy")
-                            Image(systemName: "doc.on.doc")
-                        }
-                    }
-                }
-                .background(BackgroundBlurView())
-                .onTapGesture(perform: {
-                    menuIsPresented = false
-                })
-            })
         }
         .background(Color.clear)
-        .padding(.bottom, messageEditorHeight + 30)
+        .safeAreaInset(edge: .bottom) { inputView().background(Color.white)}
     }
 }
 
@@ -172,18 +139,7 @@ internal extension ChatView {
             onCarouselItemAction: onCarouselItemAction
         )
         .onTapGesture { onMessageCellTapped(message) }
-        .onLongPressGesture(perform: {
-            switch message.messageKind {
-            case .text(let text):
-                menuIsPresented = true
-                self.message = text
-            default:
-                break
-            }
-            
-            print(message.messageKind.description)
-            print(message.id)
-        })
+        .contextMenu { messageCellContextMenu(message) }
         .modifier(
             AvatarModifier<Message, User>(
                 message: message,
@@ -195,13 +151,7 @@ internal extension ChatView {
         .modifier(MessageHorizontalSpaceModifier(messageKind: message.messageKind, isSender: message.isSender))
         .modifier(CellEdgeInsetsModifier(isSender: message.isSender))
         .id(message.id)
-    }
-    
-    private func emptyView() -> some View {
-        menuIsPresented = false
-        return  EmptyView()
-    }
-    
+    }    
 }
 
 public extension ChatView {

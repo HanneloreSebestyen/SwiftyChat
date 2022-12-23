@@ -13,23 +13,6 @@ public struct BasicInputView: View {
     @Binding private var isEditing: Bool
     private let placeholder: String
 
-    @State private var contentSizeThatFits: CGSize = .zero
-
-    private var internalAttributedMessage: Binding<NSAttributedString> {
-        Binding<NSAttributedString>(
-            get: {
-                NSAttributedString(
-                    string: self.message,
-                    attributes: [
-                        NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .body),
-                        NSAttributedString.Key.foregroundColor: UIColor.label,
-                    ]
-                )
-            },
-            set: { self.message = $0.string }
-        )
-    }
-
     private var onCommit: ((ChatMessageKind) -> Void)?
     
     public init(
@@ -41,20 +24,12 @@ public struct BasicInputView: View {
         self._message = message
         self.placeholder = placeholder
         self._isEditing = isEditing
-        self._contentSizeThatFits = State(initialValue: .zero)
         self.onCommit = onCommit
-    }
-
-    private var messageEditorHeight: CGFloat {
-        min(
-            50,
-            0.25 * UIScreen.main.bounds.height
-        )
     }
 
     private var messageEditorView: some View {
         TextEditor(text: $message)
-                .frame(height: messageEditorHeight)
+                .frame(height: 40)
     }
 
     private var sendButton: some View {
