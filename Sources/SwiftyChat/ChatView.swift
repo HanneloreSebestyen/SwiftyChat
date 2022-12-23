@@ -49,7 +49,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
         }
         .environmentObject(DeviceOrientationInfo())
         .environmentObject(VideoManager<Message>())
-        .edgesIgnoringSafeArea(.bottom)
         .iOS { $0.dismissKeyboardOnTappingOutside() }
     }
     
@@ -66,7 +65,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         thisMessage: message,
                         dateHeaderShown: showDateheader
                     )
-                    
+
                     if showDateheader {
                         VStack(alignment: .center) {
                             Text(dateFormater.string(from: message.date))
@@ -74,7 +73,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         }
                             .frame(width: geometry.size.width)
                     }
-                    
+
                     if shouldShowDisplayName {
                         Text(message.user.userName)
                             .font(.caption)
@@ -86,12 +85,12 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             )
                     }
                     chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
-                    
+
                     if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
                         Text("Loading ...")
                             .padding(.vertical)
                     }
-                    
+
                 }
                 .gesture(
                     DragGesture().onChanged { value in
@@ -103,7 +102,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     }
                 )
                 Spacer()
-                    .frame(height: inset.bottom)
                     .id("bottom")
                     .onChange(of: scrollToBottom) { value in
                         if value {
@@ -113,9 +111,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             scrollToBottom = false
                         }
                     }
-                
             }
-            .padding(EdgeInsets(top: inset.top, leading: inset.leading, bottom: 0, trailing: inset.trailing))
         }
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color.white)}
