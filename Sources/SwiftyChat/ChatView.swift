@@ -77,7 +77,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     
                     if shouldShowDisplayName {
                         Text(message.user.userName)
-                            .rotationEffect(Angle(degrees: 180)).scaleEffect(x: -1.0, y: 1.0, anchor: .center)
                             .font(.caption)
                             .multilineTextAlignment(.trailing)
                             .frame(
@@ -139,7 +138,7 @@ internal extension ChatView {
             onCarouselItemAction: onCarouselItemAction
         )
         .onTapGesture { onMessageCellTapped(message) }
-        .contextMenu { messageCellContextMenu(message) }
+        .contextMenu(menuItems: { messageCellContextMenu(message) })
         .modifier(
             AvatarModifier<Message, User>(
                 message: message,
@@ -151,16 +150,16 @@ internal extension ChatView {
         .modifier(MessageHorizontalSpaceModifier(messageKind: message.messageKind, isSender: message.isSender))
         .modifier(CellEdgeInsetsModifier(isSender: message.isSender))
         .id(message.id)
-    }    
+    }
 }
 
 public extension ChatView {
     func shouldShowDateHeader(messages: [Message], thisMessage: Message) -> Bool {
         if let messageIndex = messages.firstIndex(where: { $0.id == thisMessage.id }) {
-            if messageIndex == messages.count - 1 { return true }
-            let prevMessage = messages[messageIndex + 1]
-            let currMessage = messages[messageIndex]
-            let timeInterval = currMessage.date - prevMessage.date
+            if messageIndex == 0 { return true }
+            let prevMessage = messages[messageIndex]
+            let currMessage = messages[messageIndex - 1]
+            let timeInterval = prevMessage.date - currMessage.date
             return timeInterval > dateHeaderTimeInterval
         }
         return false
