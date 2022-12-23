@@ -65,15 +65,15 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         thisMessage: message,
                         dateHeaderShown: showDateheader
                     )
-
+                    
                     if showDateheader {
                         VStack(alignment: .center) {
                             Text(dateFormater.string(from: message.date))
                                 .font(.subheadline)
                         }
-                            .frame(width: geometry.size.width)
+                        .frame(width: geometry.size.width)
                     }
-
+                    
                     if shouldShowDisplayName {
                         Text(message.user.userName)
                             .font(.caption)
@@ -85,22 +85,13 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             )
                     }
                     chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
-
+                    
                     if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
                         Text("Loading ...")
                             .padding(.vertical)
                     }
-
+                    
                 }
-                .gesture(
-                    DragGesture().onChanged { value in
-                        if value.translation.height > 0 {
-                            isScrolledUp = true
-                        } else {
-                            isScrolledUp = false
-                        }
-                    }
-                )
                 Spacer()
                     .id("bottom")
                     .onChange(of: scrollToBottom) { value in
@@ -113,6 +104,16 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     }
             }
         }
+        .simultaneousGesture(
+            DragGesture().onChanged({
+                let isScrollDown = 0 < $0.translation.height
+                if isScrollDown {
+                    isScrolledUp = true
+                } else {
+                    isScrolledUp = false
+                }
+                
+            }))
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color.white)}
     }
