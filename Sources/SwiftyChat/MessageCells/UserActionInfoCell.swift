@@ -36,7 +36,7 @@ struct UserActionInfoCell: View {
             .padding(cellStyle.textPadding)
             .background(cellStyle.cellBackgroundColor)
             .clipShape(RoundedCornerShape(radius: cellStyle.cellCornerRadius, corners: cellStyle.cellRoundedCorners)
-)
+            )
             .overlay(
                 RoundedCornerShape(radius: cellStyle.cellCornerRadius, corners: cellStyle.cellRoundedCorners)
                 .stroke(

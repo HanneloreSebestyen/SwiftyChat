@@ -75,14 +75,14 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     }
                     
                     if shouldShowDisplayName {
-                        Text(message.user.userName)
-                            .font(.caption)
-                            .multilineTextAlignment(.trailing)
-                            .frame(
-                                maxWidth: geometry.size.width * (UIDevice.isLandscape ? 0.6 : 0.75),
-                                minHeight: 1,
-                                alignment: message.isSender ? .trailing: .leading
-                            )
+                            Text(message.user.userName)
+                                .font(.caption)
+                                .multilineTextAlignment(.trailing)
+                                .frame(
+                                    maxWidth: geometry.size.width * (UIDevice.isLandscape ? 0.6 : 0.75),
+                                    minHeight: 1,
+                                    alignment: message.isSender ? .trailing: .leading
+                                )
                     }
                     chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
                     
@@ -172,12 +172,16 @@ public extension ChatView {
         } else if dateHeaderShown {
             return true
         }
-        
-        if let messageIndex = messages.firstIndex(where: { $0.id == thisMessage.id }) {
-            if messageIndex == 0 { return true }
-            let prevMessageUserID = messages[messageIndex].user.id
-            let currMessageUserID = messages[messageIndex - 1].user.id
-            return !(prevMessageUserID == currMessageUserID)
+        switch thisMessage.messageKind {
+        case .left(_), .join(_):
+            return false
+        default:
+            if let messageIndex = messages.firstIndex(where: { $0.id == thisMessage.id }) {
+                if messageIndex == 0 { return true }
+                let prevMessageUserID = messages[messageIndex].user.id
+                let currMessageUserID = messages[messageIndex - 1].user.id
+                return !(prevMessageUserID == currMessageUserID)
+            }
         }
         
         return false
