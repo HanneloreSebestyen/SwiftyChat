@@ -145,7 +145,7 @@ internal extension ChatView {
             )
         )
         .modifier(MessageHorizontalSpaceModifier(messageKind: message.messageKind, isSender: message.isSender))
-        .modifier(CellEdgeInsetsModifier(isSender: message.isSender))
+        .modifier(CellEdgeInsetsModifier(isSender: message.isSender, message: message))
         .id(message.id)
     }
 }
