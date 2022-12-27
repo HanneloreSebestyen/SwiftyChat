@@ -17,7 +17,7 @@ internal struct CellEdgeInsetsModifier: ViewModifier {
     private var insets: EdgeInsets {
         switch message.messageKind {
         case .left, .join:
-            return EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            return EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)
         default:
             return isSender ? style.outgoingCellEdgeInsets : style.incomingCellEdgeInsets
         }

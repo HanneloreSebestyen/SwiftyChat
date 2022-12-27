@@ -16,6 +16,10 @@ internal struct MessageHorizontalSpaceModifier: ViewModifier {
     private var isSpaceFreeMessageKind: Bool {
         if case ChatMessageKind.carousel = messageKind {
             return true
+        } else if case ChatMessageKind.left(_) = messageKind {
+            return true
+        } else if case ChatMessageKind.join(_) = messageKind {
+            return true
         }
         return false
     }
