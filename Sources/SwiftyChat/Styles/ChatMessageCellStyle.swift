@@ -79,7 +79,7 @@ public final class ChatMessageCellStyle: ObservableObject {
         outgoingAvatarStyle: AvatarStyle = AvatarStyle(
             imageStyle: CommonImageStyle(imageSize: .zero)
         ),
-        userActionInfoStyle: UserActionInfoCellStyle = UserActionInfoCellStyle( cellBackgroundColor: Color(UIColor.systemGray2).opacity(0.8))
+        userActionInfoStyle: UserActionInfoCellStyle = UserActionInfoCellStyle( cellBackgroundColor: Color(UIColor.clear))
     ) {
         self.incomingTextStyle = incomingTextStyle
         self.outgoingTextStyle = outgoingTextStyle
