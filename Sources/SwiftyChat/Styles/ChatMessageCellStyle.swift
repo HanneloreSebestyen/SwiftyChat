@@ -49,6 +49,8 @@ public final class ChatMessageCellStyle: ObservableObject {
     /// Outgoing Avatar Style
     let outgoingAvatarStyle: AvatarStyle
     
+    let userActionInfoStyle: UserActionInfoCellStyle
+    
     public init(
         incomingTextStyle: TextCellStyle = TextCellStyle(
             textStyle: CommonTextStyle(
@@ -76,7 +78,8 @@ public final class ChatMessageCellStyle: ObservableObject {
         incomingAvatarStyle: AvatarStyle = AvatarStyle(),
         outgoingAvatarStyle: AvatarStyle = AvatarStyle(
             imageStyle: CommonImageStyle(imageSize: .zero)
-        )
+        ),
+        userActionInfoStyle: UserActionInfoCellStyle = UserActionInfoCellStyle( cellBackgroundColor: Color(UIColor.systemGray2).opacity(0.8))
     ) {
         self.incomingTextStyle = incomingTextStyle
         self.outgoingTextStyle = outgoingTextStyle
@@ -91,6 +94,7 @@ public final class ChatMessageCellStyle: ObservableObject {
         self.videoPlaceholderCellStyle = videoPlaceholderCellStyle
         self.incomingAvatarStyle = incomingAvatarStyle
         self.outgoingAvatarStyle = outgoingAvatarStyle
+        self.userActionInfoStyle = userActionInfoStyle
         
         objectWillChange.send()
     }
