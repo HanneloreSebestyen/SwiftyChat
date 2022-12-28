@@ -86,6 +86,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 ).padding(.horizontal)
                     }
                     chatMessageCellContainer(in: geometry.size, with: message, with: (shouldShowAvatar && shouldShowDisplayName))
+                        .onAppear {
+                            self.listItemAppears(message)
+                        }
                     
                     if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
                         Text("Loading ...")
