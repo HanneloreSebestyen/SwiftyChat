@@ -57,6 +57,10 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
         ScrollView {
             ScrollViewReader { proxy in
                 ForEach(messages) { message in
+                    if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
+                        Text("Loading ...")
+                            .padding(.vertical)
+                    }
                     let showDateheader = shouldShowDateHeader(
                         messages: messages,
                         thisMessage: message
@@ -89,12 +93,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         .onAppear {
                             self.listItemAppears(message)
                         }
-                    
-                    if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
-                        Text("Loading ...")
-                            .padding(.vertical)
-                    }
-                    
                 }
                 Spacer()
                     .id("bottom")
