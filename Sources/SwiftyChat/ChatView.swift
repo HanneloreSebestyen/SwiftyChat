@@ -80,10 +80,10 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 .font(.caption)
                                 .multilineTextAlignment(.trailing)
                                 .frame(
-                                    maxWidth: geometry.size.width * (UIDevice.isLandscape ? 0.6 : 0.75),
+                                    maxWidth: geometry.size.width,
                                     minHeight: 1,
                                     alignment: message.isSender ? .trailing: .leading
-                                )
+                                ).padding(.horizontal)
                     }
                     chatMessageCellContainer(in: geometry.size, with: message, with: (shouldShowAvatar && shouldShowDisplayName))
                     
@@ -116,7 +116,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 
             }))
         .background(Color.clear)
-        .safeAreaInset(edge: .bottom) { inputView().background(Color.white)}
+        .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemGray6))}
     }
 }
 
