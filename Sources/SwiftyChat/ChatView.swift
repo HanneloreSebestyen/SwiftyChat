@@ -30,7 +30,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var dateFormater: DateFormatter = DateFormatter()
     private var dateHeaderTimeInterval: TimeInterval
     private var shouldShowGroupChatHeaders: Bool
-    @State private var menuIsPresented: Bool = false
+    private var shouldShowAvatar: Bool
+    
     @Binding private var scrollToBottom: Bool
     
     private var messageEditorHeight: CGFloat {
@@ -84,7 +85,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                     alignment: message.isSender ? .trailing: .leading
                                 )
                     }
-                    chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowDisplayName)
+                    chatMessageCellContainer(in: geometry.size, with: message, with: (shouldShowAvatar && shouldShowDisplayName))
                     
                     if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
                         Text("Loading ...")
@@ -167,15 +168,15 @@ public extension ChatView {
         thisMessage: Message,
         dateHeaderShown: Bool
     ) -> Bool {
-        if !shouldShowGroupChatHeaders {
-            return false
-        } else if dateHeaderShown {
-            return true
-        }
         switch thisMessage.messageKind {
         case .left(_), .join(_):
             return false
         default:
+            if !shouldShowGroupChatHeaders {
+                return false
+            } else if dateHeaderShown {
+                return true
+            }
             if let messageIndex = messages.firstIndex(where: { $0.id == thisMessage.id }) {
                 if messageIndex == 0 { return true }
                 let prevMessageUserID = messages[messageIndex].user.id
@@ -215,6 +216,7 @@ public extension ChatView {
         previousLastMessageId: String,
         dateHeaderTimeInterval: TimeInterval = 3600,
         shouldShowGroupChatHeaders: Bool = false,
+        shouldShowAvatar: Bool = false,
         inputView: @escaping () -> AnyView,
         inset: EdgeInsets = .init()
     ) {
@@ -231,6 +233,7 @@ public extension ChatView {
         self.dateFormater.doesRelativeDateFormatting = true
         self.dateHeaderTimeInterval = dateHeaderTimeInterval
         self.shouldShowGroupChatHeaders = shouldShowGroupChatHeaders
+        self.shouldShowAvatar = shouldShowAvatar
     }
 }
 
