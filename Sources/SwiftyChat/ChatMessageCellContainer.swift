@@ -85,6 +85,8 @@ internal struct ChatMessageCellContainer<Message: ChatMessage>: View {
             UserActionInfoCell(userName: userName, actionType: .join, size: size)
         case .left(let userName):
             UserActionInfoCell(userName: userName, actionType: .left, size: size)
+        case .updated(let userName):
+            UserActionInfoCell(userName: userName, actionType: .updated, size: size)
         }
         
     }

@@ -117,7 +117,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 
             }))
         .background(Color.clear)
-        .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemGray6))}
+        .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemBackground))}
     }
 }
 
@@ -170,7 +170,7 @@ public extension ChatView {
         dateHeaderShown: Bool
     ) -> Bool {
         switch thisMessage.messageKind {
-        case .left(_), .join(_):
+        case .left(_), .join(_), .updated(_):
             return false
         default:
             if !shouldShowGroupChatHeaders {

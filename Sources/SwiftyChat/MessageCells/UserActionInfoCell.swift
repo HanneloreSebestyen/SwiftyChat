@@ -10,6 +10,7 @@ import SwiftUI
 enum UserActionType: String {
     case join = "joined"
     case left = "left"
+    case updated = "updated"
 }
 
 struct UserActionInfoCell: View {

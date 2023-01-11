@@ -47,6 +47,8 @@ public enum ChatMessageKind: CustomStringConvertible {
     
     case left(String)
     
+    case updated(String)
+    
     public var description: String {
         switch self {
         case .image(let imageLoadingType):
@@ -82,6 +84,8 @@ public enum ChatMessageKind: CustomStringConvertible {
             return "MessageKind.join(\(userName)"
         case .left(let userName):
             return "MessageKind.left(\(userName)"
+        case .updated(let userName):
+            return "MessageKind.updated(\(userName)"
         }
     }
     
