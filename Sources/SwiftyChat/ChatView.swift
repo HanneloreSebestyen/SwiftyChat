@@ -82,6 +82,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     if shouldShowDisplayName {
                             Text(message.user.userName)
                                 .font(.caption)
+                                .font(.system(size: 13))
+                                .fontWeight(.semibold)
                                 .multilineTextAlignment(.trailing)
                                 .frame(
                                     maxWidth: geometry.size.width,
@@ -89,7 +91,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                     alignment: message.isSender ? .trailing: .leading
                                 ).padding(.horizontal)
                     }
-                    chatMessageCellContainer(in: geometry.size, with: message, with: (shouldShowAvatar && shouldShowDisplayName))
+                    chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
                         .onAppear {
                             self.listItemAppears(message)
                         }
@@ -141,7 +143,7 @@ internal extension ChatView {
         .modifier(
             AvatarModifier<Message, User>(
                 message: message,
-                showAvatarForMessage: shouldShowAvatarForMessage(
+                showAvatarForMessage: shouldShowAvatarForMessage (
                     forThisMessage: avatarShow
                 )
             )

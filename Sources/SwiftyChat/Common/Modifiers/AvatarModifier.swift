@@ -109,11 +109,17 @@ internal struct AvatarModifier<Message: ChatMessage, User: ChatUser>: ViewModifi
     }
     
     public func body(content: Content) -> some View {
-        HStack(spacing: avatarSpacing) {
-            if !isSender { positionedAvatar.zIndex(2) }
+        if showAvatarForMessage {
+            HStack(spacing: avatarSpacing) {
+                if !isSender { positionedAvatar.zIndex(2) }
+                content
+                if isSender { positionedAvatar.zIndex(2) }
+            }
+        } else {
             content
-            if isSender { positionedAvatar.zIndex(2) }
+                .padding(.horizontal, 8)
         }
+       
     }
     
 }
