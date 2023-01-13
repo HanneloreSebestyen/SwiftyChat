@@ -14,7 +14,7 @@ enum UserActionType: String {
 }
 
 struct UserActionInfoCell: View {
-    public let userName: String
+    public let message: String
     public let actionType: UserActionType
     public let size: CGSize
 
@@ -30,7 +30,7 @@ struct UserActionInfoCell: View {
     
     // MARK: - Default Text
     private var defaultText: some View {
-        Text("\(userName) has \(actionType.rawValue) the group")
+        Text(message)
             .fontWeight(cellStyle.textStyle.fontWeight)
             .lineLimit(nil)
             .foregroundColor(cellStyle.textStyle.textColor)

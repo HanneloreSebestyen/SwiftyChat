@@ -80,12 +80,12 @@ public enum ChatMessageKind: CustomStringConvertible {
             return "MessageKind.video(url: \(videoItem.url))"
         case .loading:
             return "MessageKind.loading"
-        case .join(let userName):
-            return "MessageKind.join(\(userName)"
-        case .left(let userName):
-            return "MessageKind.left(\(userName)"
-        case .updated(let userName):
-            return "MessageKind.updated(\(userName)"
+        case .join(let message):
+            return "MessageKind.text(\(message)"
+        case .left(let message):
+            return "MessageKind.text(\(message)"
+        case .updated(let message):
+            return "MessageKind.text(\(message)"
         }
     }
     
