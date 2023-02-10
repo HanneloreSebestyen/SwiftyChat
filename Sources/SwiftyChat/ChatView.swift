@@ -31,7 +31,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var dateHeaderTimeInterval: TimeInterval
     private var shouldShowGroupChatHeaders: Bool
     private var shouldShowAvatar: Bool
-    
+    private var defaultChatInfo: String?
     @Binding private var scrollToBottom: Bool
     
     private var messageEditorHeight: CGFloat {
@@ -56,6 +56,12 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
         ScrollView {
             ScrollViewReader { proxy in
+                if let defaultInfo = defaultChatInfo {
+                    Text(defaultInfo)
+                        .font(.subheadline)
+                        .padding(.vertical)
+                }
+             
                 ForEach(messages) { message in
                     if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
                         Text("Loading ...")
@@ -213,6 +219,7 @@ public extension ChatView {
     ///
     init(
         messages: Binding<[Message]>,
+        defaultChatInfo: String? = nil,
         scrollToBottom: Binding<Bool> = .constant(false),
         loadMore: Binding<Bool> = .constant(false),
         isScrolledUp: Binding<Bool> = .constant(false),
@@ -224,6 +231,7 @@ public extension ChatView {
         inset: EdgeInsets = .init()
     ) {
         _messages = messages
+        self.defaultChatInfo = defaultChatInfo
         self.inputView = inputView
         _loadMore = loadMore
         _isScrolledUp = isScrolledUp
