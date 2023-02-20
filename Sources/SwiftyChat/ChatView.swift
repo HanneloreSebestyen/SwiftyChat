@@ -41,6 +41,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
         )
     }
     
+    @Environment(\.loadMore) public var loadMoreAction: LoadMoreAction?
+     private var canLoadMore: Bool = true
+    
     public var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
@@ -104,6 +107,13 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             }
                     }
                 }
+                .anchorPreference(key: PaginatedScrollViewKey.PreKey.self, value: .bounds) {
+                                    guard canLoadMore else { return nil }
+                                    let frame = geometry[$0]
+                                    let top = frame.minY
+                                    let bottom = frame.maxY - geometry.size.height
+                                    return PaginatedScrollViewKey.PreData(top: top, bottom: bottom)
+                                }
                 Spacer()
                     .id("bottom")
                     .onChange(of: scrollToBottom) { value in
@@ -116,9 +126,13 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     }
             }
         }
-        .refreshable(action: {
-            loadMore = true
-        })
+        .onPreferenceChange(PaginatedScrollViewKey.PreKey.self) { data in
+                        guard let data = data else { return }
+            if data.isAtTop {
+                          loadMore = true
+                        
+                        }
+                    }
         .simultaneousGesture(
             DragGesture().onChanged({
                 isScrolledUp = 0 < $0.translation.height
@@ -288,17 +302,59 @@ public extension ChatView {
     }
 }
 
-struct ScrollViewOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = .zero
-    
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-//        print("value = \(value)")
-    }
-    
-    typealias Value = CGFloat
-
+struct LoadMoreKey: EnvironmentKey {
+    static let defaultValue: LoadMoreAction? = nil
 }
 
+extension EnvironmentValues {
+    var loadMore: LoadMoreAction? {
+        get { self[LoadMoreKey.self] }
+        set { self[LoadMoreKey.self] = newValue }
+    }
+}
+extension View {
+    public func moreLoadable(action: @escaping LoadMoreAction) -> some View {
+        environment(\.loadMore, action)
+    }
+}
 
+public typealias LoadMoreAction = (@Sendable (_ canLoad: Binding<Bool>) async -> Void)
 
+public struct PaginatedScrollViewKey {
+    
+    enum Direction {
+        case top, bottom
+    }
+    
+    struct PreData: Equatable {
+        static var fraction = CGFloat(0.001)
+        
+        let top: CGFloat
+        let bottom: CGFloat
+        
+        private var abTop: CGFloat { abs(min(0, top)) }
+        private var abBottom: CGFloat { abs(max(0, bottom)) }
+        
+        var position: Direction {
+            return abTop > abBottom ? .bottom : .top
+        }
+    
+        var isAtTop: Bool {
+            return top > PreData.fraction
+        }
+        
+        var isAtBottom: Bool {
+            let percentage = (bottom / contentHeight)
+            return percentage < PreData.fraction
+        }
+        
+        private var contentHeight: CGFloat {
+            abs(top - bottom)
+        }
+    }
+    
+    struct PreKey: PreferenceKey {
+        static var defaultValue: PreData? = nil
+        static func reduce(value: inout PreData?, nextValue: () -> PreData?) {}
+    }
+}
