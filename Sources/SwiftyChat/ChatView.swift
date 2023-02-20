@@ -61,31 +61,31 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         .font(.subheadline)
                         .padding(.vertical)
                 }
-             
-                ForEach(messages) { message in
-                    if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
-                        Text("Loading ...")
-                            .padding(.vertical)
-                    }
-                    let showDateheader = shouldShowDateHeader(
-                        messages: messages,
-                        thisMessage: message
-                    )
-                    let shouldShowDisplayName = shouldShowDisplayName(
-                        messages: messages,
-                        thisMessage: message,
-                        dateHeaderShown: showDateheader
-                    )
-                    
-                    if showDateheader {
-                        VStack(alignment: .center) {
-                            Text(dateFormater.string(from: message.date))
-                                .font(.subheadline)
+                LazyVStack {
+                    ForEach(messages) { message in
+                        if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
+                            Text("Loading ...")
+                                .padding(.vertical)
                         }
-                        .frame(width: geometry.size.width)
-                    }
-                    
-                    if shouldShowDisplayName {
+                        let showDateheader = shouldShowDateHeader(
+                            messages: messages,
+                            thisMessage: message
+                        )
+                        let shouldShowDisplayName = shouldShowDisplayName(
+                            messages: messages,
+                            thisMessage: message,
+                            dateHeaderShown: showDateheader
+                        )
+                        
+                        if showDateheader {
+                            VStack(alignment: .center) {
+                                Text(dateFormater.string(from: message.date))
+                                    .font(.subheadline)
+                            }
+                            .frame(width: geometry.size.width)
+                        }
+                        
+                        if shouldShowDisplayName {
                             Text(message.user.userName)
                                 .font(.caption)
                                 .font(.system(size: 13))
@@ -96,11 +96,12 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                     minHeight: 1,
                                     alignment: message.isSender ? .trailing: .leading
                                 ).padding(.horizontal)
-                    }
-                    chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
-                        .onAppear {
-                            self.listItemAppears(message)
                         }
+                        chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
+                            .onAppear {
+                                self.listItemAppears(message)
+                            }
+                    }
                 }
                 Spacer()
                     .id("bottom")
