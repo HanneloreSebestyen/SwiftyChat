@@ -61,6 +61,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         .font(.subheadline)
                         .padding(.vertical)
                 }
+              
                 LazyVStack {
                     ForEach(messages) { message in
                         if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
@@ -115,15 +116,12 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     }
             }
         }
+        .refreshable(action: {
+            loadMore = true
+        })
         .simultaneousGesture(
             DragGesture().onChanged({
-                let isScrollDown = 0 < $0.translation.height
-                if isScrollDown {
-                    isScrolledUp = true
-                } else {
-                    isScrolledUp = false
-                }
-                
+                isScrolledUp = 0 < $0.translation.height
             }))
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemBackground))}
@@ -290,7 +288,17 @@ public extension ChatView {
     }
 }
 
+struct ScrollViewOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = .zero
+    
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+//        print("value = \(value)")
+    }
+    
+    typealias Value = CGFloat
 
+}
 
 
 
