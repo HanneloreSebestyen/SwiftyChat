@@ -15,7 +15,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @Binding public var loadMore: Bool
     @Binding private var isScrolledUp: Bool
     @State var message: String = ""
-    @State var scrollingUp: Bool = false
+    @State var scrollingUp: Bool = true
     @Binding var isLoading: Bool
     private let offset: Int = 10
     
@@ -66,15 +66,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
               
                 LazyVStack {
                     ForEach(messages) { message in
-                        if self.messages.isLastItem(message) && scrollingUp && !isLoading {
+                        if self.messages.isLastItem(message) && loadMore {
                             Text("Loading ...")
                                 .padding(.vertical)
-                                .onAppear {
-                                    loadMore = true
-                                    isLoading = true
-                                    print("load more")
-                                }
-                            
                         }
                         let showDateheader = shouldShowDateHeader(
                             messages: messages,
@@ -107,9 +101,11 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 ).padding(.horizontal)
                         }
                         chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
-//                            .onAppear {
-//                                self.listItemAppears(message)
-//                            }
+                            .onAppear {
+                             
+                                    self.listItemAppears(message)
+                               
+                            }
                     }
                 }
                 Spacer()
@@ -298,7 +294,12 @@ public extension ChatView {
     private func listItemAppears<Message: Identifiable>(_ item: Message) {
         if messages.isThresholdItem(offset: offset,
                                     item: item) {
-            loadMore = true
+            if scrollingUp {
+                loadMore = true
+                print("load more")
+            }
+            
+            
         }
     }
 }
