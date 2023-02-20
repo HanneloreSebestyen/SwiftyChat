@@ -107,9 +107,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 ).padding(.horizontal)
                         }
                         chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
-                            .onAppear {
-                                self.listItemAppears(message)
-                            }
+//                            .onAppear {
+//                                self.listItemAppears(message)
+//                            }
                     }
                 }
                 Spacer()
