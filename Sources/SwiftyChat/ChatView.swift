@@ -15,6 +15,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @Binding public var loadMore: Bool
     @Binding private var isScrolledUp: Bool
     @State var message: String = ""
+    @State var scrollingUp: Bool = false
+    @Binding var isLoading: Bool
     private let offset: Int = 10
     
     private var inputView: () -> AnyView
@@ -40,10 +42,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
             0.25 * UIScreen.main.bounds.height
         )
     }
-    
-    @Environment(\.loadMore) public var loadMoreAction: LoadMoreAction?
-     private var canLoadMore: Bool = true
-    
+        
     public var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
@@ -67,9 +66,15 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
               
                 LazyVStack {
                     ForEach(messages) { message in
-                        if self.loadMore && self.messages.isLastItem(message) && self.messages.count > 25 {
+                        if self.messages.isLastItem(message) && scrollingUp && !isLoading {
                             Text("Loading ...")
                                 .padding(.vertical)
+                                .onAppear {
+                                    loadMore = true
+                                    isLoading = true
+                                    print("load more")
+                                }
+                            
                         }
                         let showDateheader = shouldShowDateHeader(
                             messages: messages,
@@ -107,13 +112,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             }
                     }
                 }
-                .anchorPreference(key: PaginatedScrollViewKey.PreKey.self, value: .bounds) {
-                                    guard canLoadMore else { return nil }
-                                    let frame = geometry[$0]
-                                    let top = frame.minY
-                                    let bottom = frame.maxY - geometry.size.height
-                                    return PaginatedScrollViewKey.PreData(top: top, bottom: bottom)
-                                }
                 Spacer()
                     .id("bottom")
                     .onChange(of: scrollToBottom) { value in
@@ -124,18 +122,19 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                             scrollToBottom = false
                         }
                     }
-            }
-        }
-        .onPreferenceChange(PaginatedScrollViewKey.PreKey.self) { data in
-                        guard let data = data else { return }
-            if data.isAtTop {
-                          loadMore = true
-                        
+                    .onChange(of: loadMore) { value in
+                        if value {
+                            withAnimation {
+                                proxy.scrollTo(previousLastMessageId)
+                            }
                         }
                     }
+            }
+        }
         .simultaneousGesture(
             DragGesture().onChanged({
                 isScrolledUp = 0 < $0.translation.height
+                scrollingUp = 0 < $0.translation.height
             }))
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemBackground))}
@@ -236,6 +235,7 @@ public extension ChatView {
         scrollToBottom: Binding<Bool> = .constant(false),
         loadMore: Binding<Bool> = .constant(false),
         isScrolledUp: Binding<Bool> = .constant(false),
+        isLoading: Binding<Bool> = .constant(false),
         previousLastMessageId: String,
         dateHeaderTimeInterval: TimeInterval = 3600,
         shouldShowGroupChatHeaders: Bool = false,
@@ -248,6 +248,7 @@ public extension ChatView {
         self.inputView = inputView
         _loadMore = loadMore
         _isScrolledUp = isScrolledUp
+        _isLoading = isLoading
         _scrollToBottom = scrollToBottom
         self.previousLastMessageId = previousLastMessageId
         self.inset = inset
@@ -299,62 +300,5 @@ public extension ChatView {
                                     item: item) {
             loadMore = true
         }
-    }
-}
-
-struct LoadMoreKey: EnvironmentKey {
-    static let defaultValue: LoadMoreAction? = nil
-}
-
-extension EnvironmentValues {
-    var loadMore: LoadMoreAction? {
-        get { self[LoadMoreKey.self] }
-        set { self[LoadMoreKey.self] = newValue }
-    }
-}
-extension View {
-    public func moreLoadable(action: @escaping LoadMoreAction) -> some View {
-        environment(\.loadMore, action)
-    }
-}
-
-public typealias LoadMoreAction = (@Sendable (_ canLoad: Binding<Bool>) async -> Void)
-
-public struct PaginatedScrollViewKey {
-    
-    enum Direction {
-        case top, bottom
-    }
-    
-    struct PreData: Equatable {
-        static var fraction = CGFloat(0.001)
-        
-        let top: CGFloat
-        let bottom: CGFloat
-        
-        private var abTop: CGFloat { abs(min(0, top)) }
-        private var abBottom: CGFloat { abs(max(0, bottom)) }
-        
-        var position: Direction {
-            return abTop > abBottom ? .bottom : .top
-        }
-    
-        var isAtTop: Bool {
-            return top > PreData.fraction
-        }
-        
-        var isAtBottom: Bool {
-            let percentage = (bottom / contentHeight)
-            return percentage < PreData.fraction
-        }
-        
-        private var contentHeight: CGFloat {
-            abs(top - bottom)
-        }
-    }
-    
-    struct PreKey: PreferenceKey {
-        static var defaultValue: PreData? = nil
-        static func reduce(value: inout PreData?, nextValue: () -> PreData?) {}
     }
 }
