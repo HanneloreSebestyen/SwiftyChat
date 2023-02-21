@@ -15,8 +15,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @Binding public var loadMore: Bool
     @Binding private var isScrolledUp: Bool
     @State var message: String = ""
-    @State var scrollingUp: Bool = true
-    @Binding var isLoading: Bool
+    @State var scrollingUp: Bool = false
     private let offset: Int = 10
     
     private var inputView: () -> AnyView
@@ -231,7 +230,6 @@ public extension ChatView {
         scrollToBottom: Binding<Bool> = .constant(false),
         loadMore: Binding<Bool> = .constant(false),
         isScrolledUp: Binding<Bool> = .constant(false),
-        isLoading: Binding<Bool> = .constant(false),
         previousLastMessageId: String,
         dateHeaderTimeInterval: TimeInterval = 3600,
         shouldShowGroupChatHeaders: Bool = false,
@@ -244,7 +242,6 @@ public extension ChatView {
         self.inputView = inputView
         _loadMore = loadMore
         _isScrolledUp = isScrolledUp
-        _isLoading = isLoading
         _scrollToBottom = scrollToBottom
         self.previousLastMessageId = previousLastMessageId
         self.inset = inset
@@ -296,7 +293,6 @@ public extension ChatView {
                                     item: item) {
             if scrollingUp {
                 loadMore = true
-                print("load more")
             }
             
             
