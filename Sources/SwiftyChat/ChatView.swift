@@ -13,6 +13,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     
     @Binding private var messages: [Message]
     @Binding public var loadMore: Bool
+    @Binding public var hasNextPage: Bool
     @Binding private var isScrolledUp: Bool
     @State var message: String = ""
     @State var scrollingUp: Bool = false
@@ -65,7 +66,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
               
                 LazyVStack {
                     ForEach(messages) { message in
-                        if self.messages.isLastItem(message) && loadMore {
+                        if self.messages.isLastItem(message) && loadMore && hasNextPage {
                             Text("Loading ...")
                                 .padding(.vertical)
                         }
@@ -230,6 +231,7 @@ public extension ChatView {
         scrollToBottom: Binding<Bool> = .constant(false),
         loadMore: Binding<Bool> = .constant(false),
         isScrolledUp: Binding<Bool> = .constant(false),
+        hasNextPage: Binding<Bool> = .constant(false),
         previousLastMessageId: String,
         dateHeaderTimeInterval: TimeInterval = 3600,
         shouldShowGroupChatHeaders: Bool = false,
@@ -243,6 +245,7 @@ public extension ChatView {
         _loadMore = loadMore
         _isScrolledUp = isScrolledUp
         _scrollToBottom = scrollToBottom
+        _hasNextPage = hasNextPage
         self.previousLastMessageId = previousLastMessageId
         self.inset = inset
         self.dateFormater.dateStyle = .medium
@@ -291,7 +294,7 @@ public extension ChatView {
     private func listItemAppears<Message: Identifiable>(_ item: Message) {
         if messages.isThresholdItem(offset: offset,
                                     item: item) {
-            if scrollingUp {
+            if scrollingUp && hasNextPage {
                 loadMore = true
             }
             
