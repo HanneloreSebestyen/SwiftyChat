@@ -119,7 +119,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         }
                     }
                     .onChange(of: loadMore) { value in
-                        if value {
+                        if !value {
                             withAnimation {
                                 proxy.scrollTo(previousLastMessageId)
                             }

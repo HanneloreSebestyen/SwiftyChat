@@ -18,7 +18,7 @@ extension RandomAccessCollection where Self.Element: Identifiable {
         }
         
         let distance = self.distance(from: startIndex, to: itemIndex)
-        return distance == 1
+        return distance == 0
     }
     
     public func isThresholdItem<Item: Identifiable>(
