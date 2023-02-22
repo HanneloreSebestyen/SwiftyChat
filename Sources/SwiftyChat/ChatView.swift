@@ -34,6 +34,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var shouldShowGroupChatHeaders: Bool
     private var shouldShowAvatar: Bool
     private var defaultChatInfo: String?
+    @State private var messageIds = [Message.ID]()
+    @State private var currentMessage: Message.ID? = nil
     @Binding private var scrollToBottom: Bool
     
     private var messageEditorHeight: CGFloat {
@@ -103,6 +105,10 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
                             .onAppear {
                                 self.listItemAppears(message)
+                                messageIds.append(message.id)
+                            }
+                            .onDisappear {
+                                messageIds.removeAll { $0 == message.id }
                             }
                     }
                 }
@@ -118,8 +124,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     }
                     .onChange(of: loadMore) { value in
                         if !value {
+                            currentMessage = messageIds[1]
                             withAnimation {
-                                proxy.scrollTo(previousLastMessageId, anchor: .top)
+                                proxy.scrollTo(currentMessage, anchor: .top)
                             }
                         }
                     }
