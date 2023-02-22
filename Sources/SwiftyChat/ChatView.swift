@@ -42,7 +42,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
             0.25 * UIScreen.main.bounds.height
         )
     }
-        
+    
     public var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
@@ -63,7 +63,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         .font(.subheadline)
                         .padding(.vertical)
                 }
-              
+                
                 LazyVStack {
                     ForEach(messages) { message in
                         if self.messages.isLastItem(message) && loadMore && hasNextPage {
@@ -102,9 +102,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         }
                         chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
                             .onAppear {
-                             
-                                    self.listItemAppears(message)
-                               
+                                self.listItemAppears(message)
                             }
                     }
                 }
@@ -121,7 +119,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     .onChange(of: loadMore) { value in
                         if !value {
                             withAnimation {
-                                proxy.scrollTo(previousLastMessageId)
+                                proxy.scrollTo(previousLastMessageId, anchor: .top)
                             }
                         }
                     }
