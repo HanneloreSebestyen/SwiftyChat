@@ -18,6 +18,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @State var message: String = ""
     @State var scrollingUp: Bool = false
     private let offset: Int = 10
+    @State private var page: Int = 0
+    private let pageSize: Int = 25
     
     private var inputView: () -> AnyView
     private var previousLastMessageId: String
@@ -34,6 +36,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var shouldShowGroupChatHeaders: Bool
     private var shouldShowAvatar: Bool
     private var defaultChatInfo: String?
+    @State private var items: [String] = Array(0...24).map { "Item \($0)" }
 
     @Binding private var scrollToBottom: Bool
     
@@ -302,9 +305,23 @@ public extension ChatView {
                                     item: item) {
             if scrollingUp && hasNextPage {
                 loadMore = true
+                
+//                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
+//                               self.page += 1
+//                  //  let moreItems: [MockMessages.ChatMessageItem] = MockMessages.generateMessage(kind: .Text, count: 25)
+//                    self.messages.insert(contentsOf: messages, at: 0)
+//                    self.loadMore = false
+//                           }
             }
             
             
         }
     }
+//
+//    private func getMoreItems(forPage page: Int,
+//                                  pageSize: Int) -> [String] {
+//            let maximum = ((page * pageSize) + pageSize) - 1
+//            let moreItems: [String] = Array(items.count...maximum).map { "Item \($0)" }
+//            return moreItems
+//        }
 }
