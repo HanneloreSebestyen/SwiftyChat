@@ -20,13 +20,24 @@ internal struct MessageHorizontalSpaceModifier: ViewModifier {
         return false
     }
     
+    private var isUserActionInfo: Bool {
+        if case ChatMessageKind.left(_) = messageKind {
+            return true
+        } else if case ChatMessageKind.join(_) = messageKind {
+            return true
+        }  else if case ChatMessageKind.updated(_) = messageKind {
+            return true
+        }
+        return false
+    }
+    
     public func body(content: Content) -> some View {
         HStack(spacing: 0) {
-            if isSender {
+            if isSender || isUserActionInfo {
                 Spacer(minLength: 10)
             }
             content
-            if !isSender && !isSpaceFreeMessageKind {
+            if !isSender && !isSpaceFreeMessageKind || isUserActionInfo {
                 Spacer(minLength: 10)
             }
         }

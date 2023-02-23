@@ -43,6 +43,12 @@ public enum ChatMessageKind: CustomStringConvertible {
     /// Loading indicator contained in chat bubble
     case loading
     
+    case join(String)
+    
+    case left(String)
+    
+    case updated(String)
+    
     public var description: String {
         switch self {
         case .image(let imageLoadingType):
@@ -74,6 +80,12 @@ public enum ChatMessageKind: CustomStringConvertible {
             return "MessageKind.video(url: \(videoItem.url))"
         case .loading:
             return "MessageKind.loading"
+        case .join(let message):
+            return "MessageKind.text(\(message)"
+        case .left(let message):
+            return "MessageKind.text(\(message)"
+        case .updated(let message):
+            return "MessageKind.text(\(message)"
         }
     }
     

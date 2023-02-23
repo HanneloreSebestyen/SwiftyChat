@@ -13,12 +13,12 @@ extension RandomAccessCollection where Self.Element: Identifiable {
             return false
         }
         
-        guard let itemIndex = lastIndex(where: { AnyHashable($0.id) == AnyHashable(item.id) }) else {
+        guard let itemIndex = firstIndex(where: { AnyHashable($0.id) == AnyHashable(item.id) }) else {
             return false
         }
         
-        let distance = self.distance(from: itemIndex, to: endIndex)
-        return distance == 1
+        let distance = self.distance(from: startIndex, to: itemIndex)
+        return distance == 0
     }
     
     public func isThresholdItem<Item: Identifiable>(
@@ -33,8 +33,8 @@ extension RandomAccessCollection where Self.Element: Identifiable {
             return false
         }
         
-        let distance = self.distance(from: itemIndex, to: endIndex)
+        let distance = self.distance(from: itemIndex, to: startIndex)
         let offset = offset < count ? offset : count - 1
-        return offset == (distance - 1)
+        return offset == abs(distance)
     }
 }

@@ -10,35 +10,27 @@ import SwiftyChat
 
 struct BasicExampleView: View {
     
-  //  
-    @ObservedObject var viewModel: BasicViewModel = BasicViewModel()
+    @State var messages: [MockMessages.ChatMessageItem] = MockMessages.generateMessage(kind: .Text, count: 20)
+    
     // MARK: - InputBarView variables
     @State private var message = ""
     @State private var isEditing = false
-    @State var scrollToBottom = false
     
     var body: some View {
         chatView
-            .onReceive(viewModel.$messages.debounce(for: .milliseconds(650), scheduler: RunLoop.main),
-                       perform: { _ in
-                    scrollToBottom = true
-                }
-            )
     }
     
     private var chatView: some View {
-        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $viewModel.messages, scrollToBottom: $scrollToBottom, previousLastMessageId: "") {
+        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages, defaultChatInfo: "Test info", previousLastMessageId: "", shouldShowGroupChatHeaders: true, shouldShowAvatar: false) {
 
             BasicInputView(
                 message: $message,
                 isEditing: $isEditing,
                 placeholder: "Type something",
                 onCommit: { messageKind in
-//                    self.messages.append(
-//                        .init(user: MockMessages.sender, messageKind: messageKind, isSender: true)
-//                    )
-                    viewModel.addMessage(message: .init(user: MockMessages.sender, messageKind: messageKind, isSender: true))
-                  //  scrollToBottom = true
+                    self.messages.append(
+                        .init(user: MockMessages.sender, messageKind: messageKind, isSender: true)
+                    )
                 }
             )
             .padding(8)
@@ -49,7 +41,6 @@ struct BasicExampleView: View {
             .embedInAnyView()
             
         }
-     
         // ▼ Optional, Present context menu when cell long pressed
         .messageCellContextMenu { message -> AnyView in
             switch message.messageKind {
@@ -69,11 +60,9 @@ struct BasicExampleView: View {
             }
         }
         // ▼ Required
-
         .environmentObject(ChatMessageCellStyle.basicStyle)
-       
-       // .navigationBarTitle("Basic")
-      //  .listStyle(PlainListStyle())
+        .navigationBarTitle("Basic")
+        .listStyle(PlainListStyle())
     }
 }
 

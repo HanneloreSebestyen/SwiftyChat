@@ -28,6 +28,7 @@ public struct MockMessages {
         case QuickReply
         case Carousel
         case Video
+        case Left
         
         private var messageKind: ChatMessageKind {
             switch self {
@@ -38,6 +39,7 @@ public struct MockMessages {
             case .QuickReply: return .quickReply([])
             case .Carousel: return .carousel([CarouselRow(title: "", imageURL: nil, subtitle: "", buttons: [])])
             case .Video: return .video(VideoRow(url: URL(string: "")!, placeholderImage: .remote(URL(string: "")!), pictureInPicturePlayingMessage: ""))
+            case .Left: return .left("User")
             }
         }
     }
@@ -130,8 +132,8 @@ public struct MockMessages {
     }
     
     public static var sender: ChatUserItem = .init(
-        userName: "Sender",
-        avatarURL: URL(string: "https://ebbot.ai/wp-content/uploads/2020/04/Ebbot-Sa%CC%88ljsa%CC%88l.png")
+        userName: "-1",
+        avatarURL: nil
     )
     
     public static var chatbot: ChatUserItem = .init(
@@ -240,6 +242,12 @@ public struct MockMessages {
                 isSender: randomUser == Self.sender
             )
             
+        case .Left:
+            return ChatMessageItem(
+                user: randomUser,
+                messageKind: .left("User"),
+                isSender: randomUser == Self.sender
+            )
         }
     }
     
@@ -253,7 +261,8 @@ public struct MockMessages {
             .Location,
             .Text, .Text, .Text,
             .Video,
-            .QuickReply
+            .QuickReply,
+            .Left
         ]
         return allCases.randomElement()!
     }
