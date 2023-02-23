@@ -57,43 +57,44 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     }
     
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
-        ScrollView {
-            ScrollViewReader { proxy in
+        VStack {
+//            ScrollViewReader { proxy in
                 if let defaultInfo = defaultChatInfo {
                     Text(defaultInfo)
                         .font(.subheadline)
                         .padding(.vertical)
                 }
-                
-                LazyVStack {
-                    ForEach(messages) { message in
+//
+//                LazyVStack {
+                    List(messages) { message in
                         content(message: message, geometry: geometry, user: message.user)
                     }
-                }
+               
                 Spacer()
                     .id("bottom")
-                    .onChange(of: scrollToBottom) { value in
-                        if value {
-                            withAnimation {
-                                proxy.scrollTo("bottom")
-                            }
-                            scrollToBottom = false
-                        }
-                    }
-                    .onChange(of: loadMore) { value in
-                        if !value {
-                            withAnimation {
-                                proxy.scrollTo(previousLastMessageId, anchor: .top)
-                            }
-                        }
-                    }
-            }
+//                    .onChange(of: scrollToBottom) { value in
+//                        if value {
+//                            withAnimation {
+//                                proxy.scrollTo("bottom")
+//                            }
+//                            scrollToBottom = false
+//                        }
+//                    }
+//                    .onChange(of: loadMore) { value in
+//                        if !value {
+//                            withAnimation {
+//                                proxy.scrollTo(previousLastMessageId, anchor: .top)
+//                            }
+//                        }
+//                    }
+//            }
+//        }
+//        .simultaneousGesture(
+//            DragGesture().onChanged({
+//                isScrolledUp = 0 < $0.translation.height
+//                scrollingUp = 0 < $0.translation.height
+//            }))
         }
-        .simultaneousGesture(
-            DragGesture().onChanged({
-                isScrolledUp = 0 < $0.translation.height
-                scrollingUp = 0 < $0.translation.height
-            }))
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemBackground))}
     }
