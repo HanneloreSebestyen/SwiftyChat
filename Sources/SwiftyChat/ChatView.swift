@@ -34,8 +34,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private var shouldShowGroupChatHeaders: Bool
     private var shouldShowAvatar: Bool
     private var defaultChatInfo: String?
-    @State private var messageIds = [Message.ID]()
-    @State private var currentMessage: Message.ID? = nil
+
     @Binding private var scrollToBottom: Bool
     
     private var messageEditorHeight: CGFloat {
@@ -68,48 +67,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 
                 LazyVStack {
                     ForEach(messages) { message in
-                        if self.messages.isLastItem(message) && loadMore && hasNextPage {
-                            Text("Loading ...")
-                                .padding(.vertical)
-                        }
-                        let showDateheader = shouldShowDateHeader(
-                            messages: messages,
-                            thisMessage: message
-                        )
-                        let shouldShowDisplayName = shouldShowDisplayName(
-                            messages: messages,
-                            thisMessage: message,
-                            dateHeaderShown: showDateheader
-                        )
-                        
-                        if showDateheader {
-                            VStack(alignment: .center) {
-                                Text(dateFormater.string(from: message.date))
-                                    .font(.subheadline)
-                            }
-                            .frame(width: geometry.size.width)
-                        }
-                        
-                        if shouldShowDisplayName {
-                            Text(message.user.userName)
-                                .font(.caption)
-                                .font(.system(size: 13))
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.trailing)
-                                .frame(
-                                    maxWidth: geometry.size.width,
-                                    minHeight: 1,
-                                    alignment: message.isSender ? .trailing: .leading
-                                ).padding(.horizontal)
-                        }
-                        chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
-                            .onAppear {
-                                self.listItemAppears(message)
-                                messageIds.append(message.id)
-                            }
-                            .onDisappear {
-                                messageIds.removeAll { $0 == message.id }
-                            }
+                        content(message: message, geometry: geometry, user: message.user)
                     }
                 }
                 Spacer()
@@ -124,9 +82,8 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                     }
                     .onChange(of: loadMore) { value in
                         if !value {
-                            currentMessage = messageIds[1]
                             withAnimation {
-                                proxy.scrollTo(currentMessage, anchor: .top)
+                                proxy.scrollTo(previousLastMessageId, anchor: .top)
                             }
                         }
                     }
@@ -139,6 +96,50 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
             }))
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemBackground))}
+    }
+
+    private func content(message: Message, geometry: GeometryProxy, user: any ChatUser) -> some View {
+        return user.userName == "-1" ? AnyView(EmptyView()) : AnyView(messagesContent(message: message, geometry: geometry))
+    }
+ 
+    private func messagesContent(message: Message, geometry: GeometryProxy) -> some View {
+        Group {
+                if self.messages.isLastItem(message) && loadMore && hasNextPage {
+                    Text("Loading ...")
+                        .padding(.vertical)
+                }
+                let showDateheader = shouldShowDateHeader(
+                    messages: messages,
+                    thisMessage: message
+                )
+                let shouldShowDisplayName = shouldShowDisplayName(
+                    messages: messages,
+                    thisMessage: message,
+                    dateHeaderShown: showDateheader
+                )
+                
+                if showDateheader {
+                    VStack(alignment: .center) {
+                        Text(dateFormater.string(from: message.date))
+                            .font(.subheadline)
+                    }
+                    .frame(width: geometry.size.width)
+                }
+                
+                if shouldShowDisplayName {
+                    Text(message.user.userName)
+                        .font(.caption)
+                        .font(.system(size: 13))
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.trailing)
+                        .frame(
+                            maxWidth: geometry.size.width,
+                            minHeight: 1,
+                            alignment: message.isSender ? .trailing: .leading
+                        ).padding(.horizontal)
+                }
+                chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
+            }
     }
 }
 

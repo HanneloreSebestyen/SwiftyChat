@@ -132,7 +132,7 @@ public struct MockMessages {
     }
     
     public static var sender: ChatUserItem = .init(
-        userName: "Sender",
+        userName: "-1",
         avatarURL: nil
     )
     
