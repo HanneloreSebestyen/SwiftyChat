@@ -139,6 +139,10 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         ).padding(.horizontal)
                 }
                 chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
+                .onAppear{
+                    listItemAppears(message)
+                }
+            
             }
     }
 }
@@ -303,8 +307,6 @@ public extension ChatView {
             if scrollingUp && hasNextPage {
                 loadMore = true
             }
-            
-            
         }
     }
 }
