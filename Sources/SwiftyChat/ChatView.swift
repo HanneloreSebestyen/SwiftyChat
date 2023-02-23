@@ -68,6 +68,9 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
 //                LazyVStack {
                     List(messages) { message in
                         content(message: message, geometry: geometry, user: message.user)
+                            .onAppear{
+                                listItemAppears(message)
+                            }
                     }
                
                 Spacer()
@@ -301,7 +304,7 @@ public extension ChatView {
     private func listItemAppears<Message: Identifiable>(_ item: Message) {
         if messages.isThresholdItem(offset: offset,
                                     item: item) {
-            if scrollingUp && hasNextPage {
+            if hasNextPage {
                 loadMore = true
             }
             
