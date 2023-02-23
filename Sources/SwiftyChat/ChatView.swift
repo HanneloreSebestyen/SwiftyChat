@@ -57,64 +57,49 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     }
     
     @ViewBuilder private func chatView(in geometry: GeometryProxy) -> some View {
-        ReverseScrollView {
-           
-                //            ScrollViewReader { proxy in
-              
-                
-                VStack(spacing: 8) {
-                    if let defaultInfo = defaultChatInfo {
-                        Text(defaultInfo)
-                            .font(.subheadline)
-                            .padding(.vertical)
+//        VStack {
+        ScrollViewReader { proxy in
+            if let defaultInfo = defaultChatInfo {
+                Text(defaultInfo)
+                    .font(.subheadline)
+                    .padding(.vertical)
+            }
+            //
+            //                LazyVStack {
+            List(messages) { message in
+                messagesContent(message: message, geometry: geometry)
+                    .onAppear{
+                        listItemAppears(message)
                     }
-                    ForEach(messages) { message in
-                        content(message: message, geometry: geometry, user: message.user)
+            }  .simultaneousGesture(
+                DragGesture().onChanged({
+                    isScrolledUp = 0 < $0.translation.height
+                    scrollingUp = 0 < $0.translation.height
+                }))
+            
+            Spacer()
+                .id("bottom")
+                .onChange(of: scrollToBottom) { value in
+                    if value {
+                        withAnimation {
+                            proxy.scrollTo("bottom")
+                        }
+                        scrollToBottom = false
                     }
-                    Spacer()
-                        .id("bottom")
                 }
-                //            }
-                //
-                ////                LazyVStack {
-                //                    List(messages) { message in
-                //                        content(message: message, geometry: geometry, user: message.user)
-                ////                            .onAppear{
-                ////                                listItemAppears(message)
-                ////                            }
-                //                    }
-                
-               
-                //                    .onChange(of: scrollToBottom) { value in
-                //                        if value {
-                //                            withAnimation {
-                //                                proxy.scrollTo("bottom")
-                //                            }
-                //                            scrollToBottom = false
-                //                        }
-                //                    }
-                //                    .onChange(of: loadMore) { value in
-                //                        if !value {
-                //                            withAnimation {
-                //                                proxy.scrollTo(previousLastMessageId, anchor: .top)
-                //                            }
-                //                        }
-                //                    }
-                //            }
-                //        }
-                //        .simultaneousGesture(
-                //            DragGesture().onChanged({
-                //                isScrolledUp = 0 < $0.translation.height
-                //                scrollingUp = 0 < $0.translation.height
-                //            }))
-//            }
+                .onChange(of: loadMore) { value in
+                    if !value {
+                        withAnimation {
+                            proxy.scrollTo(previousLastMessageId, anchor: .top)
+                        }
+                    }
+                }
+            //            }
+            //        }
+            
         }
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemBackground))}
-    }
-
-    private func content(message: Message, geometry: GeometryProxy, user: any ChatUser) -> some View {
-        return user.userName == "-1" ? AnyView(EmptyView()) : AnyView(messagesContent(message: message, geometry: geometry))
     }
  
     private func messagesContent(message: Message, geometry: GeometryProxy) -> some View {
@@ -154,9 +139,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                         ).padding(.horizontal)
                 }
                 chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
-                .onAppear{
-                    listItemAppears(message)
-                }
             }
     }
 }
@@ -318,92 +300,11 @@ public extension ChatView {
     private func listItemAppears<Message: Identifiable>(_ item: Message) {
         if messages.isThresholdItem(offset: offset,
                                     item: item) {
-            if hasNextPage {
+            if scrollingUp && hasNextPage {
                 loadMore = true
             }
             
+            
         }
-    }
-}
-
-struct ReverseScrollView<Content>: View where Content: View {
-    @State private var contentHeight: CGFloat = CGFloat.zero
-    @State private var scrollOffset: CGFloat = CGFloat.zero
-    @State private var currentOffset: CGFloat = CGFloat.zero
-    
-    var content: () -> Content
-    
-    // Calculate content offset
-    func offset(outerheight: CGFloat, innerheight: CGFloat) -> CGFloat {
-        print("outerheight: \(outerheight) innerheight: \(innerheight)")
-        
-        let totalOffset = currentOffset + scrollOffset
-        return -((innerheight/2 - outerheight/2) - totalOffset)
-    }
-    
-    var body: some View {
-        GeometryReader { outerGeometry in
-            // Render the content
-            //  ... and set its sizing inside the parent
-            self.content()
-            .modifier(ViewHeightKey())
-            .onPreferenceChange(ViewHeightKey.self) { self.contentHeight = $0 }
-            .frame(height: outerGeometry.size.height)
-            .offset(y: self.offset(outerheight: outerGeometry.size.height, innerheight: self.contentHeight))
-            .clipped()
-            .animation(.easeInOut)
-            .gesture(
-                 DragGesture()
-                    .onChanged({ self.onDragChanged($0) })
-                    .onEnded({ self.onDragEnded($0, outerHeight: outerGeometry.size.height)}))
-        }
-    }
-    
-    func onDragChanged(_ value: DragGesture.Value) {
-        // Update rendered offset
-        print("Start: \(value.startLocation.y)")
-        print("Start: \(value.location.y)")
-        self.scrollOffset = (value.location.y - value.startLocation.y)
-        print("Scrolloffset: \(self.scrollOffset)")
-    }
-    
-    func onDragEnded(_ value: DragGesture.Value, outerHeight: CGFloat) {
-        // Update view to target position based on drag position
-        let scrollOffset = value.location.y - value.startLocation.y
-        print("Ended currentOffset=\(self.currentOffset) scrollOffset=\(scrollOffset)")
-        
-        let topLimit = self.contentHeight - outerHeight
-        print("toplimit: \(topLimit)")
-        
-        // Negative topLimit => Content is smaller than screen size. We reset the scroll position on drag end:
-        if topLimit < 0 {
-             self.currentOffset = 0
-        } else {
-            // We cannot pass bottom limit (negative scroll)
-            if self.currentOffset + scrollOffset < 0 {
-                self.currentOffset = 0
-            } else if self.currentOffset + scrollOffset > topLimit {
-                self.currentOffset = topLimit
-            } else {
-                self.currentOffset += scrollOffset
-            }
-        }
-        print("new currentOffset=\(self.currentOffset)")
-        self.scrollOffset = 0
-    }
-}
-
-struct ViewHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat { 0 }
-    static func reduce(value: inout Value, nextValue: () -> Value) {
-        value = value + nextValue()
-    }
-}
-
-extension ViewHeightKey: ViewModifier {
-    func body(content: Content) -> some View {
-        return content.background(GeometryReader { proxy in
-            Color.clear.preference(key: Self.self, value: proxy.size.height)
-        })
     }
 }
