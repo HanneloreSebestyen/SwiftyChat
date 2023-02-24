@@ -20,6 +20,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     private let offset: Int = 2
     
     private var inputView: () -> AnyView
+    private var previousLastMessageId: String
     
     private var onMessageCellTapped: (Message) -> Void = { msg in print(msg.messageKind) }
     private var messageCellContextMenu: (Message) -> AnyView = { _ in EmptyView().embedInAnyView() }
@@ -77,6 +78,13 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                                 proxy.scrollTo("bottom")
                             }
                             scrollToBottom = false
+                        }
+                    }
+                    .onChange(of: loadMore) { value in
+                        if !value {
+                            withAnimation {
+                                proxy.scrollTo(previousLastMessageId, anchor: .top)
+                            }
                         }
                     }
             }
@@ -234,6 +242,7 @@ public extension ChatView {
         loadMore: Binding<Bool> = .constant(false),
         isScrolledUp: Binding<Bool> = .constant(false),
         hasNextPage: Binding<Bool> = .constant(false),
+        previousLastMessageId: String,
         dateHeaderTimeInterval: TimeInterval = 3600,
         shouldShowGroupChatHeaders: Bool = false,
         shouldShowAvatar: Bool = false,
@@ -247,6 +256,7 @@ public extension ChatView {
         _isScrolledUp = isScrolledUp
         _scrollToBottom = scrollToBottom
         _hasNextPage = hasNextPage
+        self.previousLastMessageId = previousLastMessageId
         self.inset = inset
         self.dateFormater.dateStyle = .medium
         self.dateFormater.timeStyle = .short
