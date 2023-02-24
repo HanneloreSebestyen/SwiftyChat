@@ -17,7 +17,7 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
     @Binding private var isScrolledUp: Bool
     @State var message: String = ""
     @State var scrollingUp: Bool = false
-    private let offset: Int = 10
+    private let offset: Int = 2
     
     private var inputView: () -> AnyView
     private var previousLastMessageId: String
