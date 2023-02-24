@@ -21,7 +21,7 @@ struct BasicExampleView: View {
     }
     
     private var chatView: some View {
-        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages, defaultChatInfo: "Test info", shouldShowGroupChatHeaders: true, shouldShowAvatar: false) {
+        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages, defaultChatInfo: "Test info", previousLastMessageId: "", shouldShowGroupChatHeaders: true, shouldShowAvatar: false) {
 
             BasicInputView(
                 message: $message,
