@@ -67,19 +67,57 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
                 
                 LazyVStack {
                     ForEach(messages) { message in
-                        content(message: message, geometry: geometry, user: message.user)
-                    }
-                }
-                Spacer()
-                    .id("bottom")
-                    .onChange(of: scrollToBottom) { value in
-                        if value {
-                            withAnimation {
-                                proxy.scrollTo("bottom")
+                        if self.messages.isLastItem(message) && loadMore && hasNextPage {
+                            Text("Loading ...")
+                                .padding(.vertical)
+                        }
+                        let showDateheader = shouldShowDateHeader(
+                            messages: messages,
+                            thisMessage: message
+                        )
+                        let shouldShowDisplayName = shouldShowDisplayName(
+                            messages: messages,
+                            thisMessage: message,
+                            dateHeaderShown: showDateheader
+                        )
+                        
+                        if showDateheader {
+                            VStack(alignment: .center) {
+                                Text(dateFormater.string(from: message.date))
+                                    .font(.subheadline)
                             }
-                            scrollToBottom = false
+                            .frame(width: geometry.size.width)
+                        }
+                        
+                        if shouldShowDisplayName {
+                            Text(message.user.userName)
+                                .font(.caption)
+                                .font(.system(size: 13))
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.trailing)
+                                .frame(
+                                    maxWidth: geometry.size.width,
+                                    minHeight: 1,
+                                    alignment: message.isSender ? .trailing: .leading
+                                ).padding(.horizontal)
+                        }
+                        chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
+                        .onAppear{
+                            listItemAppears(message)
                         }
                     }
+                    Spacer()
+                        .id("bottom")
+                        .onChange(of: scrollToBottom) { value in
+                            if value {
+                                withAnimation {
+                                    proxy.scrollTo("bottom")
+                                }
+                                scrollToBottom = false
+                            }
+                        }
+                }
+              
                     .onChange(of: loadMore) { value in
                         if !value {
                             withAnimation {
@@ -96,54 +134,6 @@ public struct ChatView<Message: ChatMessage, User: ChatUser>: View {
             }))
         .background(Color.clear)
         .safeAreaInset(edge: .bottom) { inputView().background(Color(UIColor.systemBackground))}
-    }
-
-    private func content(message: Message, geometry: GeometryProxy, user: any ChatUser) -> some View {
-        return user.userName == "-1" ? AnyView(EmptyView()) : AnyView(messagesContent(message: message, geometry: geometry))
-    }
- 
-    private func messagesContent(message: Message, geometry: GeometryProxy) -> some View {
-        Group {
-                if self.messages.isLastItem(message) && loadMore && hasNextPage {
-                    Text("Loading ...")
-                        .padding(.vertical)
-                }
-                let showDateheader = shouldShowDateHeader(
-                    messages: messages,
-                    thisMessage: message
-                )
-                let shouldShowDisplayName = shouldShowDisplayName(
-                    messages: messages,
-                    thisMessage: message,
-                    dateHeaderShown: showDateheader
-                )
-                
-                if showDateheader {
-                    VStack(alignment: .center) {
-                        Text(dateFormater.string(from: message.date))
-                            .font(.subheadline)
-                    }
-                    .frame(width: geometry.size.width)
-                }
-                
-                if shouldShowDisplayName {
-                    Text(message.user.userName)
-                        .font(.caption)
-                        .font(.system(size: 13))
-                        .fontWeight(.semibold)
-                        .multilineTextAlignment(.trailing)
-                        .frame(
-                            maxWidth: geometry.size.width,
-                            minHeight: 1,
-                            alignment: message.isSender ? .trailing: .leading
-                        ).padding(.horizontal)
-                }
-                chatMessageCellContainer(in: geometry.size, with: message, with: shouldShowAvatar)
-                .onAppear{
-                    listItemAppears(message)
-                }
-            
-            }
     }
 }
 

@@ -15,13 +15,14 @@ struct BasicExampleView: View {
     // MARK: - InputBarView variables
     @State private var message = ""
     @State private var isEditing = false
+    @State private var scrollToBottom = false
     
     var body: some View {
         chatView
     }
     
     private var chatView: some View {
-        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages, defaultChatInfo: "Test info", previousLastMessageId: "", shouldShowGroupChatHeaders: true, shouldShowAvatar: false) {
+        ChatView<MockMessages.ChatMessageItem, MockMessages.ChatUserItem>(messages: $messages, defaultChatInfo: "Test info", scrollToBottom: $scrollToBottom, previousLastMessageId: "", shouldShowGroupChatHeaders: true, shouldShowAvatar: false) {
 
             BasicInputView(
                 message: $message,
@@ -31,7 +32,9 @@ struct BasicExampleView: View {
                     self.messages.append(
                         .init(user: MockMessages.sender, messageKind: messageKind, isSender: true)
                     )
+                    scrollToBottom = true
                 }
+                
             )
             .padding(8)
             .padding(.bottom, isEditing ? 0 : 8)
